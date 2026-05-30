@@ -6,8 +6,7 @@ SECRET_KEY = 'django-insecure-transflow-secret-key-change-this-in-production'
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['transflow-2.onrender.com', 'transflow-s5zb.onrender.com', '127.0.0.1', 'localhost']
-
+ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
