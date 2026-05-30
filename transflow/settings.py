@@ -78,3 +78,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/customer/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+CSRF_TRUSTED_ORIGINS = ['https://transflow-2.onrender.com', 'https://transflow-s5zb.onrender.com']
