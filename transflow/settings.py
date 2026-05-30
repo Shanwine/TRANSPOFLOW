@@ -4,7 +4,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-transflow-secret-key-change-this-in-production'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['transflow-2.onrender.com', 'transflow-s5zb.onrender.com', '127.0.0.1', 'localhost']
 
