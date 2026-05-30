@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-center mt-4 mb-5">
+  <div style="width:100%;max-width:600px;">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <a href="{% url 'trip_list' %}" style="width:36px;height:36px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#64748b;">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <div>
+        <h5 class="mb-0 fw-bold" style="color:#0f172a;">{% if form.instance.pk %}Edit Trip{% else %}Add New Trip{% endif %}</h5>
+        <small style="color:#94a3b8;">Fill in the trip details below</small>
+      </div>
+    </div>
+
+    <form method="post" id="trip-form">
+      {% csrf_token %}
+      {% if form.errors %}
+  <div class="alert alert-danger" style="border-radius:12px; margin-bottom:16px;">
+    <strong>May error sa form:</strong>
+    <ul style="margin:8px 0 0; padding-left:20px;">
+      {% for field, errors in form.errors.items %}
+        {% for error in errors %}
+          <li><strong>{{ field }}</strong>: {{ error }}</li>
+        {% endfor %}
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+      <!-- ① ASSIGNMENT CARD -->
+      <div class="card-section">
+        <div class="section-header">
+          <div class="section-icon" style="background:#f0fdf4;">
+            <i class="bi bi-truck-front-fill" style="color:#22c55e;"></i>
+          </div>
+          <span class="section-label">Assignment</span>
+        </div>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="field-label">Vehicle</label>
+            {{ form.vehicle }}
+          </div>
+          <div class="col-6">
+            <label class="field-label">Driver</label>
+            {{ form.driver }}
+          </div>
+        </div>
+        <!-- Badge -->
+        <div id="vehicle-type-badge" style="display:none;margin-top:12px;">
+          <span id="vehicle-type-text" style="font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;display:inline-block;">
+            <span></span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ② BUS: Route Card -->
+      <div id="route-card" class="card-section" style="display:none;">
+        <div class="section-header">
+          <div class="section-icon" style="background:#eff6ff;">
+            <i class="bi bi-geo-alt-fill" style="color:#3b82f6;"></i>
+          </div>
+          <span class="section-label">Route</span>
+        </div>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="field-label"><i class="bi bi-circle-fill" style="color:#22c55e;font-size:8px;margin-right:4px;"></i> Origin</label>
+            {{ form.origin }}
+          </div>
+          <div class="col-6">
+            <label class="field-label"><i class="bi bi-circle-fill" style="color:#ef4444;font-size:8px;margin-right:4px;"></i> Destination</label>
+            {{ form.destination }}
+          </div>
+        </div>
+        <div style="margin-top:14px;padding:11px 15px;background:#f8faff;border-radius:10px;display:flex;align-items:center;gap:8px;font-size:13px;color:#64748b;">
+          <i class="bi bi-arrow-right-circle-fill" style="color:#3b82f6;"></i>
+          <span id="route-preview">Select origin and destination</span>
+        </div>
+      </div>
+
+      <!-- ③ SCHEDULE CARD (Bus only) -->
+      <div id="schedule-card" class="card-section" style="display:none;">
+        <div class="section-header">
+          <div class="section-icon" style="background:#fef9c3;">
+            <i class="bi bi-clock-fill" style="color:#eab308;"></i>
+          </div>
+          <span class="section-label">Schedule</span>
+        </div>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="field-label"><i class="bi bi-box-arrow-up-right" style="color:#3b82f6;font-size:11px;"></i> Departure Time</label>
+            {{ form.departure_time }}
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ FARE & STATUS CARD -->
+      <div class="card-section">
+        <div class="section-header">
+          <div class="section-icon" style="background:#fdf4ff;">
+            <i class="bi bi-tag-fill" style="color:#a855f7;"></i>
+          </div>
+          <span class="section-label">Fare & Status</span>
+        </div>
+        <div class="row g-3">
+
+          <!-- Bus: Fare per Seat -->
+          <div class="col-6" id="fare-per-seat-col" style="display:none;">
+            <label class="field-label"><i class="bi bi-currency-exchange" style="color:#a855f7;font-size:11px;"></i> Fare per Seat (₱)</label>
+            {{ form.fare_per_seat }}
+          </div>
+
+          <!-- Commission Rate (always shown) -->
+          {% if form.commission_rate %}
+          <div class="col-6">
+            <label class="field-label"><i class="bi bi-percent" style="color:#f59e0b;font-size:11px;"></i> Commission Rate (%)</label>
+            {{ form.commission_rate }}
+          </div>
+          {% endif %}
+
+          <!-- Motor/Van/Car: Rate per KM -->
+          <div class="col-6" id="rate-per-km-col" style="display:none;">
+            <label class="field-label"><i class="bi bi-cash-coin" style="color:#22c55e;font-size:11px;"></i> Rate per KM (₱)</label>
+            {{ form.rate_per_km }}
+          </div>
+
+          <div class="col-6">
+            <div style="display:none;">{{ form.status }}</div>
+            <input type="hidden" name="status" value="pending">
+          </div>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="d-flex gap-3 mt-2">
+        <button type="submit" style="flex:1;padding:13px;background:linear-gradient(135deg,#4f46e5,#06b6d4);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <i class="bi bi-check-circle-fill"></i>
+          {% if form.instance.pk %}Update Trip{% else %}Save Trip{% endif %}
+        </button>
+        <a href="{% url 'trip_list' %}" style="padding:13px 24px;border:1.5px solid #e2e8f0;border-radius:12px;color:#64748b;text-decoration:none;font-weight:600;font-size:15px;display:flex;align-items:center;gap:6px;background:#fff;">
+          <i class="bi bi-x-circle"></i> Cancel
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<style>
+.card-section {
+  background:#fff;border-radius:16px;border:1px solid #e2e8f0;
+  padding:24px;margin-bottom:16px;
+}
+.section-header {
+  display:flex;align-items:center;gap:10px;margin-bottom:18px;
+}
+.section-icon {
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.section-icon i { font-size:14px; }
+.section-label {
+  font-size:12px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;color:#64748b;
+}
+.field-label {
+  font-size:12px;font-weight:600;color:#475569;
+  margin-bottom:6px;display:block;
+}
+input.form-control, select.form-control,
+input[type="text"], input[type="number"],
+input[type="datetime-local"], select {
+  border-radius:10px !important;background:#f8faff !important;
+  font-size:13px !important;border:1.5px solid #e2e8f0 !important;
+  padding:10px 12px !important;width:100%;
+  transition:border-color .2s,box-shadow .2s;
+}
+input:focus, select:focus {
+  border-color:#4f46e5 !important;
+  box-shadow:0 0 0 3px rgba(79,70,229,.1) !important;
+  outline:none !important;background:#fff !important;
+}
+</style>
+
+<script>
+const vehicleSelect  = document.querySelector('select[name="vehicle"]');
+const routeCard      = document.getElementById('route-card');
+const scheduleCard   = document.getElementById('schedule-card');
+const badgeWrap      = document.getElementById('vehicle-type-badge');
+const badgeText      = document.querySelector('#vehicle-type-text span');
+const farePerSeatCol = document.getElementById('fare-per-seat-col');
+const ratePerKmCol   = document.getElementById('rate-per-km-col');
+const busOriginInput = document.querySelector('#route-card [name="origin"]');
+const busDestInput   = document.querySelector('#route-card [name="destination"]');
+const routePreview   = document.getElementById('route-preview');
+
+function getVehicleType() {
+  if (!vehicleSelect || !vehicleSelect.value) return '';
+  const txt = (vehicleSelect.options[vehicleSelect.selectedIndex]?.text || '').toLowerCase().trim();
+  if (txt.startsWith('bus'))   return 'bus';
+  if (txt.startsWith('motor') || txt.startsWith('truck')) return 'motor';
+  if (txt.startsWith('van'))   return 'van';
+  if (txt.startsWith('car'))   return 'car';
+  return '';
+}
+
+function updateVisibility() {
+  if (!vehicleSelect) return;
+  const vtype  = getVehicleType();
+  const isBus  = vtype === 'bus';
+  const isRide = ['motor','van','car'].includes(vtype);
+
+  routeCard.style.display    = isBus  ? 'block' : 'none';
+  scheduleCard.style.display = isBus  ? 'block' : 'none';
+  farePerSeatCol.style.display = isBus  ? 'block' : 'none';
+  ratePerKmCol.style.display   = isRide ? 'block' : 'none';
+
+  if (busOriginInput) isBus ? busOriginInput.setAttribute('required','') : busOriginInput.removeAttribute('required');
+  if (busDestInput)   isBus ? busDestInput.setAttribute('required','')   : busDestInput.removeAttribute('required');
+
+  const badges = {
+    bus:   { label: '🚌 Bus — Route required', bg: '#eff6ff', color: '#1d4ed8' },
+    motor: { label: '🏍️ Motor — Ride booking', bg: '#f0fdf4', color: '#16a34a' },
+    van:   { label: '🚐 Van — Ride booking',   bg: '#f0fdf4', color: '#16a34a' },
+    car:   { label: '🚗 Car — Ride booking',   bg: '#f0fdf4', color: '#16a34a' },
+  };
+  if (vehicleSelect.value && badges[vtype]) {
+    const cfg = badges[vtype];
+    badgeWrap.style.display = 'block';
+    badgeText.textContent   = cfg.label;
+    badgeText.parentElement.style.background = cfg.bg;
+    badgeText.parentElement.style.color      = cfg.color;
+  } else {
+    badgeWrap.style.display = 'none';
+  }
+}
+
+function updatePreview() {
+  const o = busOriginInput?.value?.trim();
+  const d = busDestInput?.value?.trim();
+  if (routePreview) {
+    if (o && d) routePreview.textContent = `${o}  →  ${d}`;
+    else if (o) routePreview.textContent = `${o}  →  ?`;
+    else        routePreview.textContent = 'Select origin and destination';
+  }
+}
+
+busOriginInput?.addEventListener('input', updatePreview);
+busDestInput?.addEventListener('input', updatePreview);
+vehicleSelect?.addEventListener('change', updateVisibility);
+updateVisibility();
+updatePreview();
+</script>
+{% endblock %}

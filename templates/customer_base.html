@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Transflow Customer{% endblock %} | Transflow</title>
+  <meta name="description" content="Transflow Customer Booking Panel — book vehicles, manage trips, and track your bookings.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="{% static 'css/customer.css' %}" rel="stylesheet">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside id="customer-sidebar">
+  <a href="{% url 'customer_dashboard' %}" class="sidebar-brand">
+    <div class="brand-icon"><i class="bi bi-truck-front-fill"></i></div>
+    <div>
+      <div class="brand-text">Transflow</div>
+      <div class="brand-sub">Customer Portal</div>
+    </div>
+  </a>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main Menu</div>
+
+    <a href="{% url 'customer_dashboard' %}" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+
+    <a href="{% url 'customer_vehicles' %}" class="sidebar-link {% block nav_vehicles %}{% endblock %}">
+      <i class="bi bi-truck-front"></i> Browse Vehicles
+    </a>
+
+    <a href="{% url 'available_trips' %}" class="sidebar-link {% block nav_trips %}{% endblock %}">
+      <i class="bi bi-map"></i> Available Trips
+    </a>
+
+    <div class="nav-section-label">My Account</div>
+
+    <a href="{% url 'my_bookings' %}" class="sidebar-link {% block nav_bookings %}{% endblock %}">
+      <i class="bi bi-journal-bookmark-fill"></i> My Bookings
+    </a>
+
+    <a href="{% url 'customer_profile' %}" class="sidebar-link {% block nav_profile %}{% endblock %}">
+      <i class="bi bi-person-circle"></i> My Profile
+    </a>
+
+    <div class="nav-section-label">Help</div>
+
+    <a href="{% url 'logout' %}" class="sidebar-link" onclick="return confirm('Logout?')">
+      <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">{{ user.username|first|upper }}</div>
+      <div class="sidebar-user-info">
+        <div class="u-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="u-role">Customer</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div id="customer-main">
+
+  <!-- Topbar -->
+  <header id="customer-topbar">
+    <div class="topbar-title">
+      <i class="bi bi-{% block topbar_icon %}grid-fill{% endblock %}"></i>
+      {% block page_title %}Dashboard{% endblock %}
+    </div>
+    <div class="topbar-actions">
+      <!-- Mobile sidebar toggle -->
+      <button id="sidebar-toggle-btn" style="display:none;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#64748b;" aria-label="Menu">
+        <i class="bi bi-list"></i>
+      </button>
+      <a href="{% url 'my_bookings' %}" class="topbar-icon-btn" title="My Bookings">
+        <i class="bi bi-journal-bookmark-fill"></i>
+      </a>
+      <a href="{% url 'customer_profile' %}" class="topbar-user">
+        <div class="topbar-avatar">{{ user.username|first|upper }}</div>
+        {{ user.get_full_name|default:user.username }}
+      </a>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main id="customer-content">
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'error' %}
+          <div class="tf-alert tf-alert-error" data-auto-dismiss><i class="bi bi-exclamation-circle-fill"></i> {{ message }}</div>
+        {% elif message.tags == 'success' %}
+          <div class="tf-alert tf-alert-success" data-auto-dismiss><i class="bi bi-check-circle-fill"></i> {{ message }}</div>
+        {% elif message.tags == 'warning' %}
+          <div class="tf-alert tf-alert-warning" data-auto-dismiss><i class="bi bi-exclamation-triangle-fill"></i> {{ message }}</div>
+        {% else %}
+          <div class="tf-alert tf-alert-info" data-auto-dismiss><i class="bi bi-info-circle-fill"></i> {{ message }}</div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script src="{% static 'js/customer.js' %}"></script>
+{% block extra_js %}{% endblock %}
+
+<style>
+  @media (max-width: 991px) {
+    #sidebar-toggle-btn { display: flex !important; }
+  }
+</style>
+</body>
+</html>

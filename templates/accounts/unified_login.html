@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TranspoFlow – Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 20px;
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .bus-icon {
+      width: 70px; height: 70px;
+      background: rgba(13,148,136,0.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      margin-bottom: 18px;
+    }
+    h2 { color: #f1f5f9; font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+    .subtitle { color: #64748b; font-size: 13px; margin-bottom: 28px; text-align: center; }
+
+    /* ALERTS */
+    .alert {
+      width: 100%;
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px; font-weight: 600;
+      margin-bottom: 16px;
+      background: rgba(239,68,68,0.15);
+      color: #f87171;
+    }
+    .alert-success { background: rgba(16,185,129,0.15); color: #34d399; }
+
+    /* FORM */
+    .form-group { width: 100%; margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 11px; font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 15px; color: #475569;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 2px solid #334155;
+      border-radius: 10px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px; color: #f1f5f9;
+      background: #0f172a;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input::placeholder { color: #475569; }
+    .form-group input:focus {
+      border-color: #0d9488;
+      box-shadow: 0 0 0 3px rgba(13,148,136,0.15);
+    }
+
+    /* BUTTON */
+    .btn-login {
+      width: 100%; padding: 13px;
+      background: #0d9488;
+      color: #fff; border: none;
+      border-radius: 12px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 15px; font-weight: 800;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 4px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-login:hover  { background: #0f766e; }
+    .btn-login:active { transform: scale(0.98); }
+
+    /* FOOTER */
+    .other-links {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 13px;
+      color: #475569;
+    }
+    .other-links a { color: #14b8a6; font-weight: 700; text-decoration: none; }
+    .other-links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <div class="bus-icon">🚌</div>
+  <h2>Welcome Back</h2>
+  <p class="subtitle">Sign in to your TranspoFlow account</p>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert {% if 'Welcome' in message.message %}alert-success{% endif %}">
+        ⚠️ {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="POST" action="{% url 'unified_login' %}" style="width:100%;">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label>Username</label>
+      <div class="input-wrap">
+        <span class="input-icon">👤</span>
+        <input type="text" name="username" placeholder="Enter your username" required
+               value="{{ request.POST.username|default:'' }}"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" name="password" placeholder="••••••••" required/>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-login">➡️ Sign In</button>
+  </form>
+
+  <div class="other-links">
+    <span>Don't have an account? <a href="{% url 'passenger_register' %}">Register here</a></span>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TranspoFlow – Driver Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; min-height: 100vh; color: #1a1a2e; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 240px; background: #0f172a; color: #fff;
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
+      border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    .sidebar-brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 22px 20px; border-bottom: 1px solid rgba(255,255,255,0.07);
+      font-size: 17px; font-weight: 700; letter-spacing: -.3px;
+    }
+    .brand-icon {
+      width: 34px; height: 34px; background: #06b6d4;
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 12px; color: rgba(255,255,255,0.55);
+      cursor: pointer; transition: all 0.18s; font-size: 13.5px;
+      text-decoration: none; border-radius: 8px; font-weight: 500;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item i { width: 18px; text-align: center; font-size: 14px; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+    .nav-item.active { background: rgba(6,182,212,0.15); color: #06b6d4; }
+    .nav-section-label {
+      font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.25);
+      letter-spacing: 1px; text-transform: uppercase;
+      padding: 10px 12px 4px;
+    }
+    .sidebar-footer { padding: 14px 16px; border-top: 1px solid rgba(255,255,255,0.07); }
+    .driver-profile { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .driver-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #06b6d4, #0284c7);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; flex-shrink: 0; color: #fff;
+    }
+    .driver-name { font-size: 13px; font-weight: 600; color: #fff; }
+    .driver-role { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 1px; }
+    .btn-logout {
+      width: 100%; padding: 9px; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5);
+      border-radius: 8px; cursor: pointer; font-size: 12.5px; font-weight: 500;
+      transition: all 0.2s; text-decoration: none; display: flex;
+      align-items: center; justify-content: center; gap: 7px;
+    }
+    .btn-logout:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #f87171; }
+
+    /* ── Main ── */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .topbar {
+      background: #fff; padding: 0 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #e8eaed;
+      position: sticky; top: 0; z-index: 50; height: 60px;
+    }
+    .topbar-left h1 { font-size: 16px; font-weight: 700; color: #0f172a; }
+    .topbar-left p { font-size: 12px; color: #94a3b8; margin-top: 1px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .status-badge {
+      display: flex; align-items: center; gap: 7px;
+      background: #f0fdf4; color: #15803d;
+      padding: 6px 14px; border-radius: 20px;
+      font-size: 12px; font-weight: 600; border: 1px solid #bbf7d0;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .notif-btn {
+      width: 36px; height: 36px; border-radius: 8px; background: #f8fafc;
+      border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #64748b; font-size: 15px; transition: all .2s;
+      text-decoration: none;
+    }
+    .notif-btn:hover { background: #e2e8f0; color: #0f172a; }
+
+    /* ── Content ── */
+    .content { padding: 24px 28px; }
+
+    /* Notice */
+    .notice {
+      background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+      padding: 13px 16px; font-size: 13px; color: #92400e;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+      border-left: 4px solid #f59e0b;
+    }
+    .notice i { color: #f59e0b; font-size: 15px; flex-shrink: 0; }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+    .stat-card {
+      background: #fff; border-radius: 12px; padding: 18px 20px;
+      display: flex; align-items: center; gap: 16px;
+      border: 1px solid #e8eaed; transition: box-shadow .2s, transform .2s;
+    }
+    .stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); transform: translateY(-1px); }
+    .stat-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .stat-icon.blue  { background: #eff6ff; color: #2563eb; }
+    .stat-icon.green { background: #f0fdf4; color: #16a34a; }
+    .stat-icon.amber { background: #fffbeb; color: #d97706; }
+    .stat-label { font-size: 11.5px; color: #94a3b8; font-weight: 500; margin-bottom: 3px; text-transform: uppercase; letter-spacing: .4px; }
+    .stat-value { font-size: 26px; font-weight: 700; color: #0f172a; line-height: 1; }
+    .stat-change { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+
+    /* Two-col grid */
+    .grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    /* Panel */
+    .panel { background: #fff; border-radius: 14px; border: 1px solid #e8eaed; overflow: hidden; }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+    }
+    .panel-title { font-size: 13.5px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+    .panel-title i { color: #94a3b8; font-size: 14px; }
+
+    /* Booking section labels */
+    .booking-section-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .6px; padding: 10px 20px 6px;
+    }
+    .booking-section-label.pending-label { color: #d97706; }
+    .booking-section-label.confirmed-label { color: #16a34a; }
+
+    /* Trip items */
+    .trip-list { padding: 4px 0; }
+    .trip-item { padding: 13px 20px; border-bottom: 1px solid #f8fafc; transition: background .15s; }
+    .trip-item:last-child { border-bottom: none; }
+    .trip-item:hover { background: #fafbfc; }
+    .trip-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 7px; }
+    .trip-passenger { font-size: 13px; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 6px; }
+    .trip-passenger i { color: #94a3b8; font-size: 12px; }
+    .badge { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+    .badge-pending   { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .badge-confirmed { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .badge-ongoing   { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+    .trip-route { font-size: 13px; color: #475569; margin-bottom: 7px; display: flex; align-items: center; gap: 7px; font-weight: 500; }
+    .trip-route i { color: #06b6d4; font-size: 11px; }
+    .trip-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11.5px; color: #94a3b8; margin-bottom: 6px; }
+    .trip-meta span { display: flex; align-items: center; gap: 5px; }
+
+    /* ── Payment pill inside trip-item ── */
+    .payment-row {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 10px; align-items: center;
+    }
+    .pay-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 700; padding: 3px 10px;
+      border-radius: 20px; white-space: nowrap;
+    }
+    .pay-pill.cash        { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .pay-pill.gcash       { background: #eff6ff; color: #1d4ed8; border: 1px solid #93c5fd; }
+    .pay-pill.maya        { background: #faf5ff; color: #6d28d9; border: 1px solid #c4b5fd; }
+    .pay-pill.credit_card { background: #fff7ed; color: #9a3412; border: 1px solid #fdba74; }
+    .pay-pill.unknown     { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+    .fare-chip {
+      font-size: 11.5px; font-weight: 700; color: #0f172a;
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      padding: 3px 10px; border-radius: 20px;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .earn-chip {
+      font-size: 11.5px; font-weight: 700; color: #15803d;
+      background: #f0fdf4; border: 1px solid #bbf7d0;
+      padding: 3px 10px; border-radius: 20px;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+
+    .trip-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: none; transition: all .2s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-accept { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .btn-accept:hover { background: #bbf7d0; }
+    .btn-reject { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .btn-reject:hover { background: #fecaca; }
+    .btn-start  { background: #06b6d4; color: #fff; }
+    .btn-start:hover { background: #0891b2; }
+    .btn-end    { background: #ef4444; color: #fff; }
+    .btn-end:hover { background: #dc2626; }
+
+    /* Empty state */
+    .empty-state { padding: 32px 20px; text-align: center; color: #94a3b8; }
+    .empty-state i { font-size: 32px; display: block; margin-bottom: 10px; color: #cbd5e1; }
+    .empty-state p { font-size: 13px; }
+
+    /* Map panel */
+    .map-controls { display: flex; gap: 8px; padding: 14px 16px 10px; }
+    .btn-locate {
+      background: #06b6d4; color: #fff; border: none;
+      padding: 8px 16px; border-radius: 8px; font-size: 12.5px;
+      font-weight: 600; cursor: pointer; display: flex; align-items: center;
+      gap: 7px; transition: background .2s;
+    }
+    .btn-locate:hover { background: #0891b2; }
+    .btn-stop-map {
+      background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0;
+      padding: 8px 14px; border-radius: 8px; font-size: 12.5px;
+      font-weight: 600; cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .btn-stop-map:hover { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+    #driver-map { width: 100%; height: 260px; }
+    .location-info { display: flex; gap: 0; border-top: 1px solid #f1f5f9; }
+    .loc-chip { flex: 1; padding: 10px 14px; font-size: 12px; color: #64748b; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid #f1f5f9; }
+    .loc-chip:last-child { border-right: none; }
+    .loc-chip-label { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: #94a3b8; font-weight: 600; }
+    .loc-chip-val { font-size: 12.5px; font-weight: 600; color: #0f172a; }
+
+    /* Summary bar */
+    .summary-bar { display: flex; border-top: 1px solid #f1f5f9; }
+    .summary-chip { flex: 1; padding: 12px; text-align: center; border-right: 1px solid #f1f5f9; }
+    .summary-chip:last-child { border-right: none; }
+    .sum-val { font-size: 18px; font-weight: 700; color: #0f172a; }
+    .sum-lbl { font-size: 10.5px; color: #94a3b8; margin-top: 1px; }
+
+    /* ── MY TRIPS SECTION ── */
+    .trips-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; margin-top: 8px; }
+    .section-title { font-size: 16px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+    .section-title i { color: #06b6d4; }
+    .badge-count { background: #f59e0b; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+    .bookings-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+    .booking-card {
+      background: #fff; border-radius: 14px; padding: 18px 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); border-left: 4px solid #f59e0b;
+      display: flex; align-items: center; gap: 18px; transition: all 0.2s;
+      border: 1px solid #e8eaed;
+    }
+    .booking-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-1px); }
+    .booking-card.confirmed { border-left-color: #16a34a; }
+    .booking-avatar {
+      width: 46px; height: 46px; border-radius: 50%;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 18px; flex-shrink: 0;
+    }
+    .booking-info { flex: 1; min-width: 0; }
+    .booking-name { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .booking-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #6b7280; }
+    .booking-meta span { display: flex; align-items: center; gap: 5px; }
+    .booking-meta i { color: #06b6d4; }
+    .booking-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn-accept2 { padding: 8px 18px; background: #16a34a; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+    .btn-accept2:hover { background: #15803d; }
+    .btn-reject2 { padding: 8px 18px; background: #fff; color: #ef4444; border: 1.5px solid #ef4444; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+    .btn-reject2:hover { background: #fee2e2; }
+    .confirmed-badge { padding: 6px 14px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 12px; font-weight: 700; border: 1px solid #6ee7b7; }
+    .filter-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-tab { padding: 7px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid #e5e7eb; background: #fff; color: #6b7280; transition: all 0.2s; }
+    .filter-tab:hover { border-color: #06b6d4; color: #06b6d4; }
+    .filter-tab.active { background: #06b6d4; color: #fff; border-color: #06b6d4; }
+    .trips-grid { display: flex; flex-direction: column; gap: 14px; }
+    .trip-card {
+      background: #fff; border-radius: 14px; padding: 20px 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06); border-left: 4px solid #e5e7eb;
+      transition: all 0.2s; display: flex; align-items: center; gap: 20px;
+      border: 1px solid #e8eaed;
+    }
+    .trip-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-1px); }
+    .trip-card.pending   { border-left-color: #f59e0b; }
+    .trip-card.ongoing   { border-left-color: #3b82f6; }
+    .trip-card.completed { border-left-color: #16a34a; }
+    .trip-card.cancelled { border-left-color: #ef4444; }
+    .trip-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .trip-icon.pending   { background: #fef3c7; color: #f59e0b; }
+    .trip-icon.ongoing   { background: #dbeafe; color: #2563eb; }
+    .trip-icon.completed { background: #d1fae5; color: #16a34a; }
+    .trip-icon.cancelled { background: #fee2e2; color: #ef4444; }
+    .trip-body { flex: 1; min-width: 0; }
+    .trip-route2 { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .trip-route2 i { color: #06b6d4; font-size: 13px; }
+    .trip-meta2 { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #6b7280; }
+    .trip-meta2 span { display: flex; align-items: center; gap: 5px; }
+    .trip-meta2 i { color: #06b6d4; }
+    .trip-badge { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; flex-shrink: 0; }
+    .trip-badge.pending   { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .trip-badge.ongoing   { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+    .trip-badge.completed { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .trip-badge.cancelled { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .empty-state2 { text-align: center; padding: 40px 20px; color: #9ca3af; background: #fff; border-radius: 14px; border: 1px solid #e8eaed; }
+    .empty-state2 i { font-size: 40px; margin-bottom: 12px; display: block; color: #d1d5db; }
+    .hidden { display: none !important; }
+    .section-divider { border: none; border-top: 1.5px solid #e5e7eb; margin: 8px 0 24px 0; }
+
+    /* ── PAYMENT HISTORY SECTION ── */
+    .payment-summary-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 22px; }
+    .pay-stat-card {
+      background: #fff; border-radius: 12px; padding: 18px 20px;
+      border: 1px solid #e8eaed; display: flex; align-items: center; gap: 14px;
+    }
+    .pay-stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .pay-stat-icon.green { background: #f0fdf4; color: #16a34a; }
+    .pay-stat-icon.blue  { background: #eff6ff; color: #2563eb; }
+    .pay-stat-icon.amber { background: #fffbeb; color: #d97706; }
+    .pay-stat-label { font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+    .pay-stat-value { font-size: 22px; font-weight: 700; color: #0f172a; }
+
+    /* Payment table */
+    .pay-table-wrap { background: #fff; border-radius: 14px; border: 1px solid #e8eaed; overflow: hidden; }
+    .pay-table-header {
+      padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .pay-table-title { font-size: 14px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+    .pay-filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pay-filter-btn { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid #e5e7eb; background: #fff; color: #6b7280; transition: all 0.2s; }
+    .pay-filter-btn:hover { border-color: #06b6d4; color: #06b6d4; }
+    .pay-filter-btn.active { background: #06b6d4; color: #fff; border-color: #06b6d4; }
+    table.pay-table { width: 100%; border-collapse: collapse; }
+    table.pay-table thead { background: #f8fafc; }
+    table.pay-table th { padding: 11px 16px; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+    table.pay-table td { padding: 13px 16px; font-size: 13px; color: #374151; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+    table.pay-table tr:last-child td { border-bottom: none; }
+    table.pay-table tr:hover td { background: #fafbfc; }
+    .td-route { font-weight: 600; color: #0f172a; }
+    .td-passenger { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .td-fare { font-weight: 700; color: #0f172a; }
+    .td-earn { font-weight: 700; color: #16a34a; }
+    .td-comm { font-size: 12px; color: #94a3b8; }
+    .status-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+    .status-pill.completed { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .status-pill.pending   { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .status-pill.confirmed { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+    .status-pill.cancelled { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #0f172a; color: #fff;
+      padding: 14px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 600;
+      z-index: 9999; display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      transform: translateY(80px); opacity: 0; transition: all .3s;
+      max-width: 320px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-left: 4px solid #16a34a; }
+    .toast.error   { border-left: 4px solid #ef4444; }
+
+    @media (max-width: 900px) {
+      .sidebar { width: 60px; }
+      .sidebar-brand span, .nav-item span, .driver-name, .driver-role, .btn-logout span, .nav-section-label { display: none; }
+      .main { margin-left: 60px; }
+      .grid-two, .stats-row, .trips-stats-row, .payment-summary-row { grid-template-columns: 1fr; }
+      table.pay-table th:nth-child(4), table.pay-table td:nth-child(4),
+      table.pay-table th:nth-child(5), table.pay-table td:nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+{% if messages %}
+{% for message in messages %}
+<div class="toast {% if message.tags == 'success' %}success{% else %}error{% endif %}" id="django-toast">
+  <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i>
+  {{ message }}
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- ── Sidebar ── -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon"><i class="fas fa-truck-moving" style="color:#fff;font-size:15px;"></i></div>
+    <span>TranspoFlow</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <button class="nav-item active" id="nav-dashboard" onclick="showSection('dashboard', this)">
+      <i class="fas fa-gauge-high"></i><span>Dashboard</span>
+    </button>
+    <button class="nav-item" id="nav-trips" onclick="showSection('trips', this)">
+      <i class="fas fa-route"></i><span>My Trips</span>
+    </button>
+    <button class="nav-item" id="nav-payments" onclick="showSection('payments', this)">
+      <i class="fas fa-peso-sign"></i><span>Payments</span>
+    </button>
+    <div class="nav-section-label">Manage</div>
+    <button class="nav-item" id="nav-attendance" onclick="showSection('attendance', this)">
+  <i class="fas fa-clipboard-user"></i><span>Attendance</span>
+</button>
+<a href="{% url 'driver_tracking' %}" class="nav-item"><i class="fas fa-location-dot"></i><span>Share Location</span></a>
+<button class="nav-item" id="nav-fuel" onclick="showSection('fuel', this)">
+  <i class="fas fa-gas-pump"></i><span>Fuel Log</span>
+</button>
+   
+  </nav>
+  <div class="sidebar-footer">
+    <div class="driver-profile">
+      <div class="driver-avatar">{{ user.username|first|upper }}</div>
+      <div>
+        <div class="driver-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="driver-role">Driver</div>
+      </div>
+    </div>
+    <a href="/accounts/logout/" class="btn-logout">
+      <i class="fas fa-right-from-bracket"></i><span>Logout</span>
+    </a>
+  </div>
+</aside>
+
+<!-- ── Main ── -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="topbar-title">Driver Dashboard</h1>
+      <p id="topbar-sub">Welcome back, @{{ user.get_full_name|default:user.username }}!</p>
+    </div>
+    <div class="topbar-right">
+      <a href="#" class="notif-btn"><i class="fas fa-bell"></i></a>
+      <div class="status-badge"><div class="status-dot"></div> Active Driver</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════════════════════════════════════
+         SECTION: DASHBOARD
+    ══════════════════════════════════════ -->
+    <div id="section-dashboard">
+
+      {% if pending_bookings %}
+      <div class="notice">
+        <i class="fas fa-triangle-exclamation"></i>
+        <span>You have <strong>{{ pending_bookings|length }} pending booking{{ pending_bookings|length|pluralize }}</strong> that need your action.</span>
+      </div>
+      {% endif %}
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-route"></i></div>
+          <div>
+            <div class="stat-label">Trips Today</div>
+            <div class="stat-value">{{ confirmed_bookings|length|add:pending_bookings|length }}</div>
+            <div class="stat-change">Active + Pending</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+          <div>
+            <div class="stat-label">Total Trips</div>
+            <div class="stat-value">{{ total_trips }}</div>
+            <div class="stat-change">All completed</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="fas fa-peso-sign"></i></div>
+          <div>
+            <div class="stat-label">Total Earnings</div>
+            <div class="stat-value">₱{{ driver_total_earnings|floatformat:0 }}</div>
+            <div class="stat-change">From completed trips</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-two">
+        <!-- Bookings Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fas fa-clipboard-list"></i> My Assigned Trips</div>
+            <button onclick="showSection('trips', document.getElementById('nav-trips'))" style="font-size:12px;color:#06b6d4;background:none;border:none;cursor:pointer;font-weight:600;">View all →</button>
+          </div>
+          <div class="trip-list">
+
+            {% if pending_bookings %}
+            <div class="booking-section-label pending-label">
+              <i class="fas fa-clock"></i> Pending ({{ pending_bookings|length }})
+            </div>
+            {% for booking in pending_bookings %}
+            <div class="trip-item">
+              <div class="trip-top">
+                <div class="trip-passenger"><i class="fas fa-user"></i>{{ booking.customer.get_full_name|default:booking.customer.username }}</div>
+                <span class="badge badge-pending">Pending</span>
+              </div>
+              <div class="trip-route"><i class="fas fa-location-dot"></i>{{ booking.trip.origin }} → {{ booking.trip.destination }}</div>
+              <div class="trip-meta">
+                <span><i class="fas fa-bus"></i> {{ booking.trip.vehicle.name|default:"No vehicle" }}</span>
+                <span><i class="fas fa-users"></i> {{ booking.seats }} seat{{ booking.seats|pluralize }}</span>
+                <span><i class="fas fa-calendar"></i> {{ booking.booked_at|date:"M d, Y" }}</span>
+              </div>
+              <!-- Payment info -->
+              <div class="payment-row">
+                {% if booking.payment_method == 'cash' %}
+                  <span class="pay-pill cash"><i class="fas fa-money-bill-wave"></i> Cash</span>
+                {% elif booking.payment_method == 'gcash' %}
+                  <span class="pay-pill gcash"><i class="fas fa-mobile-screen"></i> GCash</span>
+                {% elif booking.payment_method == 'maya' %}
+                  <span class="pay-pill maya"><i class="fas fa-mobile-screen"></i> Maya</span>
+                {% elif booking.payment_method == 'credit_card' %}
+                  <span class="pay-pill credit_card"><i class="fas fa-credit-card"></i> Card •••• {{ booking.card_last4 }}</span>
+                {% else %}
+                  <span class="pay-pill unknown"><i class="fas fa-circle-question"></i> —</span>
+                {% endif %}
+                <span class="fare-chip"><i class="fas fa-peso-sign"></i> {{ booking.total_fare|floatformat:2 }}</span>
+              </div>
+              <div class="trip-actions">
+                <form method="POST" action="{% url 'driver_accept_booking' booking.id %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-accept"><i class="fas fa-check"></i> Accept</button>
+                </form>
+                <form method="POST" action="{% url 'driver_reject_booking' booking.id %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-reject"><i class="fas fa-times"></i> Reject</button>
+                </form>
+              </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if confirmed_bookings %}
+            <div class="booking-section-label confirmed-label">
+              <i class="fas fa-circle-check"></i> Confirmed ({{ confirmed_bookings|length }})
+            </div>
+            {% for booking in confirmed_bookings %}
+            <div class="trip-item">
+              <div class="trip-top">
+                <div class="trip-passenger"><i class="fas fa-user"></i>{{ booking.customer.get_full_name|default:booking.customer.username }}</div>
+                {% if booking.trip.status == 'ongoing' %}
+                  <span class="badge badge-ongoing">Ongoing</span>
+                {% else %}
+                  <span class="badge badge-confirmed">Confirmed</span>
+                {% endif %}
+              </div>
+              <div class="trip-route"><i class="fas fa-location-dot"></i>{{ booking.trip.origin }} → {{ booking.trip.destination }}</div>
+              <div class="trip-meta">
+                <span><i class="fas fa-bus"></i> {{ booking.trip.vehicle.name|default:"No vehicle" }}</span>
+                <span><i class="fas fa-users"></i> {{ booking.seats }} seat{{ booking.seats|pluralize }}</span>
+              </div>
+              <!-- Payment info -->
+              <div class="payment-row">
+                {% if booking.payment_method == 'cash' %}
+                  <span class="pay-pill cash"><i class="fas fa-money-bill-wave"></i> Cash</span>
+                {% elif booking.payment_method == 'gcash' %}
+                  <span class="pay-pill gcash"><i class="fas fa-mobile-screen"></i> GCash</span>
+                {% elif booking.payment_method == 'maya' %}
+                  <span class="pay-pill maya"><i class="fas fa-mobile-screen"></i> Maya</span>
+                {% elif booking.payment_method == 'credit_card' %}
+                  <span class="pay-pill credit_card"><i class="fas fa-credit-card"></i> Card •••• {{ booking.card_last4 }}</span>
+                {% else %}
+                  <span class="pay-pill unknown"><i class="fas fa-circle-question"></i> —</span>
+                {% endif %}
+                <span class="fare-chip"><i class="fas fa-peso-sign"></i> {{ booking.total_fare|floatformat:2 }}</span>
+                <span class="earn-chip"><i class="fas fa-arrow-trend-up"></i> ₱{{ booking.driver_earnings|floatformat:2 }} net</span>
+              </div>
+              <div class="trip-actions">
+                {% if booking.trip.status == 'ongoing' %}
+                <form method="POST" action="{% url 'end_trip' booking.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-end" onclick="return confirm('End this trip?')"><i class="fas fa-flag-checkered"></i> End Trip</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{% url 'start_trip' booking.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-start" onclick="return confirm('Start this trip?')"><i class="fas fa-play"></i> Start Trip</button>
+                </form>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if not pending_bookings and not confirmed_bookings %}
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>No bookings assigned yet.</p>
+            </div>
+            {% endif %}
+          </div>
+          <div class="summary-bar">
+            <div class="summary-chip"><div class="sum-val">{{ bookings|length }}</div><div class="sum-lbl">Total</div></div>
+            <div class="summary-chip"><div class="sum-val">{{ pending_bookings|length }}</div><div class="sum-lbl">Pending</div></div>
+            <div class="summary-chip"><div class="sum-val">{{ confirmed_bookings|length }}</div><div class="sum-lbl">Confirmed</div></div>
+          </div>
+        </div>
+
+        <!-- Map Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><i class="fas fa-map-pin"></i> My Location (Real-time)</div>
+            <span style="font-size:11px;color:#94a3b8;">GPS Active</span>
+          </div>
+          <div class="map-controls">
+            <button class="btn-locate" onclick="shareLocation()"><i class="fas fa-location-crosshairs"></i> Share Location</button>
+            <button class="btn-stop-map" onclick="stopSharing()"><i class="fas fa-stop"></i> Stop</button>
+          </div>
+          <div id="driver-map"></div>
+          <div class="location-info">
+            <div class="loc-chip"><div class="loc-chip-label">Latitude</div><div class="loc-chip-val" id="lat-val">—</div></div>
+            <div class="loc-chip"><div class="loc-chip-label">Longitude</div><div class="loc-chip-val" id="lng-val">—</div></div>
+            <div class="loc-chip"><div class="loc-chip-label">Last Update</div><div class="loc-chip-val" id="time-val">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /section-dashboard -->
+
+    <!-- ══════════════════════════════════════
+         SECTION: MY TRIPS
+    ══════════════════════════════════════ -->
+    <div id="section-trips" style="display:none;">
+      <div class="trips-stats-row">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-list"></i></div>
+          <div><div class="stat-label">Total Trips</div><div class="stat-value">{{ trips|length }}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="fas fa-clock"></i></div>
+          <div><div class="stat-label">Pending</div><div class="stat-value">{{ pending_trips|length }}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-truck-moving"></i></div>
+          <div><div class="stat-label">Ongoing</div><div class="stat-value">{{ ongoing_trips|length }}</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+          <div><div class="stat-label">Completed</div><div class="stat-value">{{ completed_trips|length }}</div></div>
+        </div>
+      </div>
+
+      <!-- Pending Bookings -->
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fas fa-inbox"></i> Pending Bookings
+          {% if pending_bookings %}<span class="badge-count">{{ pending_bookings|length }}</span>{% endif %}
+        </div>
+        <span style="font-size:12px;color:#6b7280;">Mga booking na nangangailangan ng iyong aksyon</span>
+      </div>
+      <div class="bookings-grid">
+        {% for booking in pending_bookings %}
+        <div class="booking-card">
+          <div class="booking-avatar">{{ booking.customer.username|first|upper }}</div>
+          <div class="booking-info">
+            <div class="booking-name">{{ booking.customer.get_full_name|default:booking.customer.username }}</div>
+            <div class="booking-meta">
+              <span><i class="fas fa-route"></i> {{ booking.trip.origin }} → {{ booking.trip.destination }}</span>
+              <span><i class="fas fa-chair"></i> {{ booking.seats }} seat{{ booking.seats|pluralize }}</span>
+              <span><i class="fas fa-calendar"></i> {{ booking.booked_at|date:"M d, Y – h:i A" }}</span>
+              <span>
+                {% if booking.payment_method == 'cash' %}<i class="fas fa-money-bill-wave"></i> Cash
+                {% elif booking.payment_method == 'gcash' %}<i class="fas fa-mobile-screen"></i> GCash
+                {% elif booking.payment_method == 'maya' %}<i class="fas fa-mobile-screen"></i> Maya
+                {% elif booking.payment_method == 'credit_card' %}<i class="fas fa-credit-card"></i> Card ••{{ booking.card_last4 }}
+                {% else %}<i class="fas fa-circle-question"></i> —{% endif %}
+              </span>
+              <span><i class="fas fa-peso-sign"></i> {{ booking.total_fare|floatformat:2 }}</span>
+            </div>
+          </div>
+          <div class="booking-actions">
+            <form method="post" action="{% url 'driver_accept_booking' booking.pk %}" style="margin:0;">
+              {% csrf_token %}
+              <button type="submit" class="btn-accept2"><i class="fas fa-check"></i> Accept</button>
+            </form>
+            <form method="post" action="{% url 'driver_reject_booking' booking.pk %}" style="margin:0;">
+              {% csrf_token %}
+              <button type="submit" class="btn-reject2"><i class="fas fa-times"></i> Reject</button>
+            </form>
+          </div>
+        </div>
+        {% empty %}
+        <div class="empty-state2">
+          <i class="fas fa-inbox"></i>
+          <p style="font-weight:600;">Walang pending na bookings</p>
+          <p style="font-size:13px;margin-top:4px;">Lahat ng bookings ay na-action na.</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Confirmed Bookings -->
+      {% if confirmed_bookings %}
+      <div class="section-header" style="margin-top:8px;">
+        <div class="section-title">
+          <i class="fas fa-check-circle" style="color:#16a34a;"></i> Confirmed Bookings
+          <span class="badge-count" style="background:#16a34a;">{{ confirmed_bookings|length }}</span>
+        </div>
+      </div>
+      <div class="bookings-grid">
+        {% for booking in confirmed_bookings %}
+        <div class="booking-card confirmed">
+          <div class="booking-avatar" style="background:linear-gradient(135deg,#16a34a,#06b6d4);">{{ booking.customer.username|first|upper }}</div>
+          <div class="booking-info">
+            <div class="booking-name">{{ booking.customer.get_full_name|default:booking.customer.username }}</div>
+            <div class="booking-meta">
+              <span><i class="fas fa-route"></i> {{ booking.trip.origin }} → {{ booking.trip.destination }}</span>
+              <span><i class="fas fa-chair"></i> {{ booking.seats }} seat{{ booking.seats|pluralize }}</span>
+              <span><i class="fas fa-calendar"></i> {{ booking.booked_at|date:"M d, Y – h:i A" }}</span>
+              <span>
+                {% if booking.payment_method == 'cash' %}<i class="fas fa-money-bill-wave"></i> Cash
+                {% elif booking.payment_method == 'gcash' %}<i class="fas fa-mobile-screen"></i> GCash
+                {% elif booking.payment_method == 'maya' %}<i class="fas fa-mobile-screen"></i> Maya
+                {% elif booking.payment_method == 'credit_card' %}<i class="fas fa-credit-card"></i> Card ••{{ booking.card_last4 }}
+                {% else %}<i class="fas fa-circle-question"></i> —{% endif %}
+              </span>
+              <span style="color:#16a34a;font-weight:700;"><i class="fas fa-peso-sign"></i> {{ booking.driver_earnings|floatformat:2 }} net</span>
+            </div>
+          </div>
+          <span class="confirmed-badge"><i class="fas fa-check"></i> Confirmed</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <hr class="section-divider">
+
+      <!-- All Trips -->
+      <div class="section-header">
+        <div class="section-title"><i class="fas fa-route"></i> My Assigned Trips</div>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterTrips('all', this)"><i class="fas fa-list"></i> All</button>
+        <button class="filter-tab" onclick="filterTrips('pending', this)"><i class="fas fa-clock"></i> Pending</button>
+        <button class="filter-tab" onclick="filterTrips('ongoing', this)"><i class="fas fa-truck-moving"></i> Ongoing</button>
+        <button class="filter-tab" onclick="filterTrips('completed', this)"><i class="fas fa-check-circle"></i> Completed</button>
+        <button class="filter-tab" onclick="filterTrips('cancelled', this)"><i class="fas fa-times-circle"></i> Cancelled</button>
+      </div>
+      <div class="trips-grid" id="trips-container">
+        {% for trip in trips %}
+        <div class="trip-card {{ trip.status }}" data-status="{{ trip.status }}">
+          <div class="trip-icon {{ trip.status }}">
+            {% if trip.status == 'pending' %}<i class="fas fa-clock"></i>
+            {% elif trip.status == 'ongoing' %}<i class="fas fa-truck-moving"></i>
+            {% elif trip.status == 'completed' %}<i class="fas fa-check-circle"></i>
+            {% else %}<i class="fas fa-times-circle"></i>{% endif %}
+          </div>
+          <div class="trip-body">
+            <div class="trip-route2">
+              <i class="fas fa-location-dot"></i>{{ trip.origin }}
+              <i class="fas fa-arrow-right"></i>{{ trip.destination }}
+            </div>
+            <div class="trip-meta2">
+              <span><i class="fas fa-bus"></i> {{ trip.vehicle.name|default:"No Vehicle" }}</span>
+              <span><i class="fas fa-id-card"></i> {{ trip.vehicle.plate_number|default:"—" }}</span>
+              <span><i class="fas fa-peso-sign"></i> {{ trip.fare_per_seat|floatformat:2 }}/seat</span>
+              {% if trip.departure_time %}<span><i class="fas fa-calendar"></i> {{ trip.departure_time|date:"M d, Y" }}</span>{% endif %}
+            </div>
+          </div>
+          <span class="trip-badge {{ trip.status }}">
+            {% if trip.status == 'pending' %}⏳ Pending
+            {% elif trip.status == 'ongoing' %}🚌 Ongoing
+            {% elif trip.status == 'completed' %}✔ Completed
+            {% else %}✖ Cancelled{% endif %}
+          </span>
+        </div>
+        {% empty %}
+        <div class="empty-state2">
+          <i class="fas fa-route"></i>
+          <p>Wala pang trips na naka-assign sa iyo.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div><!-- /section-trips -->
+
+    <!-- ══════════════════════════════════════
+         SECTION: PAYMENT HISTORY
+    ══════════════════════════════════════ -->
+    <div id="section-payments" style="display:none;">
+
+      <!-- Summary cards -->
+      <div class="payment-summary-row">
+        <div class="pay-stat-card">
+          <div class="pay-stat-icon green"><i class="fas fa-peso-sign"></i></div>
+          <div>
+            <div class="pay-stat-label">Total Earnings</div>
+            <div class="pay-stat-value">₱{{ driver_total_earnings|floatformat:2 }}</div>
+          </div>
+        </div>
+        <div class="pay-stat-card">
+          <div class="pay-stat-icon blue"><i class="fas fa-receipt"></i></div>
+          <div>
+            <div class="pay-stat-label">Completed Trips</div>
+            <div class="pay-stat-value">{{ completed_bookings_count }}</div>
+          </div>
+        </div>
+        <div class="pay-stat-card">
+          <div class="pay-stat-icon amber"><i class="fas fa-chart-line"></i></div>
+          <div>
+            <div class="pay-stat-label">Total Fare Collected</div>
+            <div class="pay-stat-value">₱{{ total_fare_collected|floatformat:2 }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment table -->
+      <div class="pay-table-wrap">
+        <div class="pay-table-header">
+          <div class="pay-table-title"><i class="fas fa-clock-rotate-left" style="color:#94a3b8;"></i> Payment History</div>
+          <div class="pay-filter-row">
+            <button class="pay-filter-btn active" onclick="filterPayments('all', this)">All</button>
+            <button class="pay-filter-btn" onclick="filterPayments('completed', this)">Completed</button>
+            <button class="pay-filter-btn" onclick="filterPayments('confirmed', this)">Confirmed</button>
+            <button class="pay-filter-btn" onclick="filterPayments('pending', this)">Pending</button>
+            <button class="pay-filter-btn" onclick="filterPayments('cancelled', this)">Cancelled</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="pay-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Route / Passenger</th>
+                <th>Payment</th>
+                <th>Total Fare</th>
+                <th>My Earnings</th>
+                <th>Commission</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="payments-tbody">
+              {% for booking in bookings %}
+              <tr data-status="{{ booking.status }}">
+                <td style="color:#94a3b8;font-size:12px;">{{ booking.id }}</td>
+                <td>
+                  <div class="td-route">{{ booking.trip.origin }} → {{ booking.trip.destination }}</div>
+                  <div class="td-passenger">{{ booking.customer.get_full_name|default:booking.customer.username }}</div>
+                </td>
+                <td>
+                  {% if booking.payment_method == 'cash' %}
+                    <span class="pay-pill cash"><i class="fas fa-money-bill-wave"></i> Cash</span>
+                  {% elif booking.payment_method == 'gcash' %}
+                    <span class="pay-pill gcash"><i class="fas fa-mobile-screen"></i> GCash</span>
+                  {% elif booking.payment_method == 'maya' %}
+                    <span class="pay-pill maya"><i class="fas fa-mobile-screen"></i> Maya</span>
+                  {% elif booking.payment_method == 'credit_card' %}
+                    <span class="pay-pill credit_card"><i class="fas fa-credit-card"></i> ••{{ booking.card_last4 }}</span>
+                  {% else %}
+                    <span class="pay-pill unknown">—</span>
+                  {% endif %}
+                </td>
+                <td class="td-fare">₱{{ booking.total_fare|floatformat:2 }}</td>
+                <td class="td-earn">₱{{ booking.driver_earnings|floatformat:2 }}</td>
+                <td class="td-comm">₱{{ booking.commission_fee|floatformat:2 }}</td>
+                <td style="font-size:12px;color:#6b7280;">{{ booking.booked_at|date:"M d, Y" }}</td>
+                <td>
+                  <span class="status-pill {{ booking.status }}">
+                    {% if booking.status == 'completed' %}✔ Completed
+                    {% elif booking.status == 'confirmed' %}✔ Confirmed
+                    {% elif booking.status == 'pending' %}⏳ Pending
+                    {% else %}✖ Cancelled{% endif %}
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="8" style="text-align:center;padding:40px;color:#94a3b8;">
+                  <i class="fas fa-receipt" style="font-size:28px;display:block;margin-bottom:10px;color:#cbd5e1;"></i>
+                  Walang payment records pa.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /section-dashboard -->
+
+    <div id="section-trips" style="display:none;">
+      ...
+    </div><!-- /section-trips -->
+
+    <div id="section-payments" style="display:none;">
+      ...
+    </div><!-- /section-payments -->
+
+    <!-- SECTION: ATTENDANCE -->
+<div id="section-attendance" style="display:none;">
+
+  <!-- Today's Attendance -->
+  <div style="background:#fff;border-radius:14px;border:1px solid #e8eaed;padding:24px;margin-bottom:20px;">
+    <div class="section-title" style="margin-bottom:20px;">
+      <i class="fas fa-clipboard-user"></i> Today's Attendance
+      <span style="font-size:12px;color:#94a3b8;font-weight:400;margin-left:8px;">{{ today_attendance.date }}</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
+      <div style="background:#f8fafc;border-radius:12px;padding:16px;text-align:center;">
+        <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;margin-bottom:6px;">Time In</div>
+        <div style="font-size:20px;font-weight:700;color:#0f172a;">
+          {% if today_attendance.time_in %}
+            {{ today_attendance.time_in|date:"h:i A" }}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+      <div style="background:#f8fafc;border-radius:12px;padding:16px;text-align:center;">
+        <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;margin-bottom:6px;">Time Out</div>
+        <div style="font-size:20px;font-weight:700;color:#0f172a;">
+          {% if today_attendance.time_out %}
+            {{ today_attendance.time_out|date:"h:i A" }}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+      <div style="background:#f8fafc;border-radius:12px;padding:16px;text-align:center;">
+        <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;margin-bottom:6px;">Duration</div>
+        <div style="font-size:20px;font-weight:700;color:#16a34a;">{{ today_attendance.duration }}</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+      {% if not today_attendance.time_in %}
+      <form method="post" action="{% url 'driver_attendance' %}" style="flex:1;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="time_in">
+        <button type="submit" style="width:100%;padding:12px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">
+          <i class="fas fa-clock"></i> Time In
+        </button>
+      </form>
+      {% elif not today_attendance.time_out %}
+      <form method="post" action="{% url 'driver_attendance' %}" style="flex:1;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="time_out">
+        <button type="submit" style="width:100%;padding:12px;background:#ef4444;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">
+          <i class="fas fa-clock"></i> Time Out
+        </button>
+      </form>
+      {% else %}
+      <div style="width:100%;padding:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;text-align:center;font-size:14px;font-weight:700;color:#16a34a;">
+        <i class="fas fa-check-circle"></i> Attendance Complete!
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Attendance History -->
+  <div style="background:#fff;border-radius:14px;border:1px solid #e8eaed;overflow:hidden;">
+    <div style="padding:16px 20px;border-bottom:1px solid #f1f5f9;">
+      <div class="section-title"><i class="fas fa-history"></i> Attendance History</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#f8fafc;">
+          <th style="padding:11px 16px;font-size:11px;font-weight:700;color:#94a3b8;text-align:left;text-transform:uppercase;">Date</th>
+          <th style="padding:11px 16px;font-size:11px;font-weight:700;color:#94a3b8;text-align:left;text-transform:uppercase;">Time In</th>
+          <th style="padding:11px 16px;font-size:11px;font-weight:700;color:#94a3b8;text-align:left;text-transform:uppercase;">Time Out</th>
+          <th style="padding:11px 16px;font-size:11px;font-weight:700;color:#94a3b8;text-align:left;text-transform:uppercase;">Duration</th>
+          <th style="padding:11px 16px;font-size:11px;font-weight:700;color:#94a3b8;text-align:left;text-transform:uppercase;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for att in attendance_history %}
+        <tr style="border-bottom:1px solid #f8fafc;">
+          <td style="padding:13px 16px;font-size:13px;font-weight:600;">{{ att.date|date:"M d, Y" }}</td>
+          <td style="padding:13px 16px;font-size:13px;">{{ att.time_in|date:"h:i A"|default:"—" }}</td>
+          <td style="padding:13px 16px;font-size:13px;">{{ att.time_out|date:"h:i A"|default:"—" }}</td>
+          <td style="padding:13px 16px;font-size:13px;font-weight:600;color:#16a34a;">{{ att.duration }}</td>
+          <td style="padding:13px 16px;">
+            {% if att.time_in and att.time_out %}
+              <span style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">Complete</span>
+            {% elif att.time_in %}
+              <span style="background:#dbeafe;color:#1e40af;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">On Duty</span>
+            {% else %}
+              <span style="background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">Absent</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align:center;padding:40px;color:#94a3b8;">
+            <i class="fas fa-calendar-xmark" style="font-size:28px;display:block;margin-bottom:10px;color:#d1d5db;"></i>
+            Walang attendance records pa.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<!-- SECTION: FUEL LOG -->
+<div id="section-fuel" style="display:none;">
+
+  <!-- Summary Cards -->
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px;">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="fas fa-clock"></i></div>
+      <div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-value">
+          {% with pending_fuels=fuels|length %}
+            {% for f in fuels %}{% if f.status == 'pending' %}{{ forloop.counter }}{% endif %}{% endfor %}
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+      <div>
+        <div class="stat-label">Approved</div>
+        <div class="stat-value">
+          {% for f in fuels %}{% if f.status == 'approved' %}{{ forloop.counter }}{% endif %}{% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="fas fa-gas-pump"></i></div>
+      <div>
+        <div class="stat-label">Total Requests</div>
+        <div class="stat-value">{{ fuels|length }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="pay-table-wrap">
+    <div class="pay-table-header">
+      <div class="pay-table-title">
+        <i class="fas fa-gas-pump" style="color:#94a3b8;"></i> Fuel History
+      </div>
+      <a href="{% url 'driver_fuel_create' %}"
+         style="display:flex; align-items:center; gap:7px; padding:8px 16px;
+                background:#2563eb; color:#fff; border-radius:8px;
+                font-size:13px; font-weight:600; text-decoration:none;">
+        <i class="fas fa-plus-circle"></i> New Fuel Request
+      </a>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="pay-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Vehicle</th>
+            <th>Fuel Type</th>
+            <th>Liters</th>
+            <th>Price/L</th>
+            <th>Total Cost</th>
+            <th>Station</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fuel in fuels %}
+          <tr>
+            <td>{{ fuel.date }}</td>
+            <td>{{ fuel.vehicle }}</td>
+            <td>
+              <span class="pay-pill unknown">{{ fuel.get_fuel_type_display }}</span>
+            </td>
+            <td>{{ fuel.liters }} L</td>
+            <td>₱{{ fuel.price_per_liter }}</td>
+            <td><strong>₱{{ fuel.total_cost }}</strong></td>
+            <td>{{ fuel.station|default:"—" }}</td>
+            <td>
+              {% if fuel.status == 'pending' %}
+                <span class="badge badge-pending">⏳ Pending</span>
+              {% elif fuel.status == 'approved' %}
+                <span class="badge badge-approved">✅ Approved</span>
+              {% elif fuel.status == 'rejected' %}
+                <span class="badge badge-rejected">❌ Rejected</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" style="text-align:center; padding:40px; color:#94a3b8;">
+              <i class="fas fa-gas-pump" style="font-size:28px; display:block; margin-bottom:10px; color:#d1d5db;"></i>
+              Wala pang fuel requests. <a href="{% url 'driver_fuel_create' %}">Mag-submit na!</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- /section-fuel -->
+  </div><!-- /content -->
+</div><!-- /main -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // ── Map ──
+  const map = L.map('driver-map').setView([9.7829, 125.4834], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+  const truckIcon = L.divIcon({
+    html: '<div style="font-size:26px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3))">🚌</div>',
+    iconSize: [30,30], iconAnchor: [15,15], className: ''
+  });
+  let marker = null, watchId = null;
+
+  function shareLocation() {
+    if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+    watchId = navigator.geolocation.watchPosition(pos => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      document.getElementById('lat-val').textContent = lat.toFixed(5);
+      document.getElementById('lng-val').textContent = lng.toFixed(5);
+      document.getElementById('time-val').textContent = new Date().toLocaleTimeString();
+      if (marker) marker.setLatLng([lat, lng]);
+      else marker = L.marker([lat, lng], { icon: truckIcon }).addTo(map).bindPopup('<b>You are here!</b>').openPopup();
+      map.setView([lat, lng], 15);
+      fetch('/update-location/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCookie('csrftoken') },
+        body: `lat=${lat}&lng=${lng}`
+      });
+    }, err => alert('Cannot access location: ' + err.message), { enableHighAccuracy: true, maximumAge: 5000 });
+  }
+
+  function stopSharing() {
+    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  }
+
+  function getCookie(name) {
+    let v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+    return v ? v[2] : null;
+  }
+
+  // ── Section Switcher ──
+  const sectionTitles = {
+    dashboard:  ['Driver Dashboard', 'Welcome back, @{{ user.get_full_name|default:user.username }}!'],
+    trips:      ['My Trips', 'Lahat ng iyong trips at bookings'],
+    payments:   ['Payment History', 'Iyong mga earnings at payment records'],
+    attendance: ['Attendance', 'Iyong daily attendance records'],
+    fuel:       ['Fuel Log', 'Iyong mga fuel requests at history'],
+};
+  function showSection(section, el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    ['dashboard','trips','payments','attendance','fuel'].forEach(s => {
+      document.getElementById('section-' + s).style.display = s === section ? 'block' : 'none';
+    });
+    document.getElementById('topbar-title').textContent = sectionTitles[section][0];
+    document.getElementById('topbar-sub').textContent   = sectionTitles[section][1];
+    if (section === 'dashboard') { setTimeout(() => map.invalidateSize(), 100); }
+  }
+
+  // ── Filter Trips ──
+  function filterTrips(status, btn) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const cards = document.querySelectorAll('.trip-card');
+    let visible = 0;
+    cards.forEach(card => {
+      if (status === 'all' || card.dataset.status === status) { card.classList.remove('hidden'); visible++; }
+      else { card.classList.add('hidden'); }
+    });
+    let emptyEl = document.getElementById('dynamic-empty');
+    if (visible === 0) {
+      if (!emptyEl) {
+        emptyEl = document.createElement('div');
+        emptyEl.id = 'dynamic-empty';
+        emptyEl.className = 'empty-state2';
+        emptyEl.innerHTML = `<i class="fas fa-inbox"></i><p>Walang ${status} na trips.</p>`;
+        document.getElementById('trips-container').appendChild(emptyEl);
+      }
+      emptyEl.classList.remove('hidden');
+    } else if (emptyEl) { emptyEl.classList.add('hidden'); }
+  }
+
+  // ── Filter Payments ──
+  function filterPayments(status, btn) {
+    document.querySelectorAll('.pay-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const rows = document.querySelectorAll('#payments-tbody tr[data-status]');
+    rows.forEach(row => {
+      row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+    });
+  }
+
+  // ── Toast ──
+  window.addEventListener('DOMContentLoaded', () => {
+    const toast = document.getElementById('django-toast');
+    if (toast) {
+      setTimeout(() => toast.classList.add('show'), 100);
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+  });
+</script>
+</body>
+</html>

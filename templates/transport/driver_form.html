@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% block page_title %}Add Driver{% endblock %}
+{% block content %}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% url 'driver_list' %}" class="btn btn-outline-secondary btn-sm rounded-circle"
+     style="width:36px; height:36px; display:flex; align-items:center; justify-content:center;">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h5 class="fw-bold mb-0">Add Driver</h5>
+    <small class="text-muted">Vehicle / Add Driver</small>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mx-auto" style="max-width:780px;">
+
+  <div class="card-header border-0 pt-4 px-4 pb-0 bg-white">
+    <div class="d-flex gap-3 align-items-center">
+      <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+           style="width:46px; height:46px; background:#7c3aed; font-size:1.2rem; flex-shrink:0;">
+        <i class="bi bi-person-fill"></i>
+      </div>
+      <div>
+        <div class="fw-bold" style="font-size:1rem;">New Driver</div>
+        <div class="text-muted" style="font-size:0.82rem;">Fill in the details to register a driver.</div>
+      </div>
+    </div>
+    <hr class="mt-3 mb-0">
+  </div>
+
+  <div class="card-body p-4">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row g-3">
+
+        {# Personal Info #}
+        <div class="col-12">
+          <p class="text-muted small fw-semibold text-uppercase mb-2" style="letter-spacing:0.05em;">
+            <i class="bi bi-person me-1"></i> Personal Info
+          </p>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">Driver Name*</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-person text-muted"></i>
+            </span>
+            <input type="text" name="name" class="form-control border-start-0 ps-0"
+                   placeholder="e.g. Juan Dela Cruz" required>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">Mobile*</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-phone text-muted"></i>
+            </span>
+            <input type="text" name="mobile" class="form-control border-start-0 ps-0"
+                   placeholder="e.g. 09XX XXX XXXX" required>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">Age*</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-calendar-person text-muted"></i>
+            </span>
+            <input type="number" name="age" class="form-control border-start-0 ps-0"
+                   placeholder="e.g. 30" required min="18" max="70">
+          </div>
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label fw-semibold small">Address*</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-geo-alt text-muted"></i>
+            </span>
+            <textarea name="address" class="form-control border-start-0 ps-0"
+                      rows="2" placeholder="Full address" required></textarea>
+          </div>
+        </div>
+
+        {# License Info #}
+        <div class="col-12 mt-2">
+          <p class="text-muted small fw-semibold text-uppercase mb-2" style="letter-spacing:0.05em;">
+            <i class="bi bi-card-text me-1"></i> License Info
+          </p>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">License No*</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-card-text text-muted"></i>
+            </span>
+            <input type="text" name="license_no" class="form-control border-start-0 ps-0"
+                   placeholder="e.g. N01-12-345678" required>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">License Expiry Date*</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-calendar-x text-muted"></i>
+            </span>
+            <input type="date" name="license_expiry" class="form-control border-start-0 ps-0" required>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">Total Experience*</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-briefcase text-muted"></i>
+            </span>
+            <input type="text" name="experience" class="form-control border-start-0 ps-0"
+                   placeholder="e.g. 5 years" required>
+          </div>
+        </div>
+
+        {# Employment Info #}
+        <div class="col-12 mt-2">
+          <p class="text-muted small fw-semibold text-uppercase mb-2" style="letter-spacing:0.05em;">
+            <i class="bi bi-briefcase me-1"></i> Employment Info
+          </p>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">Date of Joining*</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-calendar-check text-muted"></i>
+            </span>
+            <input type="date" name="date_of_joining" class="form-control border-start-0 ps-0" required>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">Driver Status</label>
+          <select name="status" class="form-select" required>
+            <option value="">-- Select Status --</option>
+            <option value="active">✅ Active</option>
+            <option value="inactive">⛔ Inactive</option>
+            <option value="on_trip">🚌 On Trip</option>
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">Reference / Notes</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-sticky text-muted"></i>
+            </span>
+            <input type="text" name="reference" class="form-control border-start-0 ps-0"
+                   placeholder="Optional notes">
+          </div>
+        </div>
+
+        {# Documents #}
+        <div class="col-12 mt-2">
+          <p class="text-muted small fw-semibold text-uppercase mb-2" style="letter-spacing:0.05em;">
+            <i class="bi bi-paperclip me-1"></i> Documents & Photo
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold small">Driver Photo</label>
+          <input type="file" name="photo" class="form-control" accept="image/*">
+          <div class="text-muted small mt-1">
+            <i class="bi bi-info-circle me-1"></i>JPG, PNG — max 2MB
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold small">Driver Document</label>
+          <input type="file" name="document" class="form-control">
+          <div class="text-muted small mt-1">
+            <i class="bi bi-info-circle me-1"></i>PDF or image file
+          </div>
+        </div>
+
+      </div>
+
+      <div class="d-flex gap-2 mt-4 pt-2 border-top">
+        <button type="submit" class="btn btn-primary fw-bold px-4">
+          <i class="bi bi-plus-circle me-1"></i> Add Driver
+        </button>
+        <a href="{% url 'driver_list' %}" class="btn btn-outline-secondary px-4">
+          Cancel
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}

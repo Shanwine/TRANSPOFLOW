@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TranspoFlow – Add Fuel Log</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',sans-serif; background:#f4f6f9; display:flex; min-height:100vh; }
+    .sidebar { width:220px; background:#1e2a35; color:#fff; display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:100; }
+    .sidebar-brand { display:flex; align-items:center; gap:10px; padding:20px 18px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:18px; font-weight:700; }
+    .sidebar-brand i { color:#00bcd4; }
+    .sidebar-nav { flex:1; padding:16px 0; }
+    .nav-item { display:flex; align-items:center; gap:12px; padding:11px 20px; color:rgba(255,255,255,0.7); text-decoration:none; font-size:14px; transition:all 0.2s; }
+    .nav-item:hover, .nav-item.active { background:rgba(0,188,212,0.15); color:#00bcd4; }
+    .nav-item i { width:18px; text-align:center; }
+    .sidebar-footer { padding:16px 18px; border-top:1px solid rgba(255,255,255,0.1); }
+    .driver-avatar { width:38px; height:38px; border-radius:50%; background:#00bcd4; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; }
+    .driver-profile { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .driver-name { font-size:13px; font-weight:600; }
+    .driver-role { font-size:11px; color:rgba(255,255,255,0.5); }
+    .btn-logout { width:100%; padding:8px; background:transparent; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.6); border-radius:6px; cursor:pointer; font-size:13px; text-decoration:none; display:block; text-align:center; }
+    .btn-logout:hover { background:rgba(255,255,255,0.08); color:#fff; }
+    .main { margin-left:220px; flex:1; display:flex; flex-direction:column; }
+    .topbar { background:#fff; padding:14px 28px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e5e7eb; }
+    .topbar h1 { font-size:18px; font-weight:600; color:#1e2a35; }
+    .content { padding:24px 28px; }
+    .card { background:#fff; border-radius:12px; padding:28px; box-shadow:0 1px 4px rgba(0,0,0,0.06); max-width:600px; }
+    .card-title { font-size:16px; font-weight:700; color:#1e2a35; margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+    .form-group { margin-bottom:16px; }
+    label { display:block; font-size:13px; font-weight:600; color:#374151; margin-bottom:6px; }
+    input, select, textarea { width:100%; padding:9px 12px; border:1.5px solid #e5e7eb; border-radius:8px; font-size:14px; color:#1e2a35; transition:border-color 0.2s; }
+    input:focus, select:focus, textarea:focus { outline:none; border-color:#00bcd4; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .btn-submit { background:#00bcd4; color:#fff; border:none; padding:10px 24px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; transition:background 0.2s; }
+    .btn-submit:hover { background:#0097a7; }
+    .btn-cancel { background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; padding:10px 24px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; text-decoration:none; margin-left:10px; }
+    .btn-cancel:hover { background:#e5e7eb; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <i class="fas fa-truck-moving"></i> TranspoFlow
+  </div>
+  <nav class="sidebar-nav">
+    <a href="{% url 'driver_dashboard' %}" class="nav-item"><i class="fas fa-gauge-high"></i> Dashboard</a>
+    <a href="#" class="nav-item"><i class="fas fa-route"></i> My Trips</a>
+    <a href="{% url 'driver_fuel_list' %}" class="nav-item"><i class="fas fa-list"></i> Fuel History</a>
+    <a href="{% url 'driver_fuel_create' %}" class="nav-item active"><i class="fas fa-gas-pump"></i> Add Fuel Log</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="driver-profile">
+      <div class="driver-avatar">{{ request.user.username|first|upper }}</div>
+      <div>
+        <div class="driver-name">{{ request.user.username }}</div>
+        <div class="driver-role">Driver</div>
+      </div>
+    </div>
+    <a href="{% url 'logout' %}" class="btn-logout"><i class="fas fa-right-from-bracket"></i> Logout</a>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <h1><i class="fas fa-gas-pump" style="color:#00bcd4;margin-right:8px;"></i> Add Fuel Log</h1>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-gas-pump" style="color:#00bcd4;"></i> Fuel Log Entry</div>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vehicle</label>
+            {{ form.vehicle }}
+          </div>
+          <div class="form-group">
+            <label>Fuel Type</label>
+            {{ form.fuel_type }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Liters</label>
+            {{ form.liters }}
+          </div>
+          <div class="form-group">
+            <label>Price per Liter (₱)</label>
+            {{ form.price_per_liter }}
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date</label>
+            {{ form.date }}
+          </div>
+          <div class="form-group">
+            <label>Odometer (km)</label>
+            {{ form.odometer }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Station</label>
+          {{ form.station }}
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          {{ form.notes }}
+        </div>
+        <div style="margin-top:20px;">
+          <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Save Fuel Log</button>
+          <a href="{% url 'driver_dashboard' %}" class="btn-cancel">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,211 @@
+{% extends 'transport/customer_base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block topbar_icon %}speedometer2{% endblock %}
+{% block page_title %}Customer Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ql-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0.4rem; padding: 0.85rem 0.5rem;
+    background: #f8faff; border: 1px solid var(--border);
+    border-radius: 12px; text-decoration: none;
+    color: var(--text); font-size: .78rem;
+    font-weight: 600; transition: all .15s; text-align: center;
+  }
+  .ql-item i { font-size: 1.3rem; }
+  .ql-item:hover { border-color: var(--primary); background: #eff6ff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-title">Welcome back, {{ user.get_full_name|default:user.username }}! 👋</div>
+    <div class="page-subtitle">Here's an overview of your bookings and activity</div>
+  </div>
+  <a href="{% url 'available_trips' %}" class="btn-primary-tf">
+    <i class="bi bi-plus-lg"></i> Book a Trip
+  </a>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="bi bi-journal-bookmark-fill"></i></div>
+    <div>
+      <div class="stat-value">{{ total_bookings }}</div>
+      <div class="stat-label">Total Bookings</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+    <div>
+      <div class="stat-value">{{ active_bookings.count }}</div>
+      <div class="stat-label">Confirmed</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+    <div>
+      <div class="stat-value">{{ pending_bookings.count }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon cyan"><i class="bi bi-flag-fill"></i></div>
+    <div>
+      <div class="stat-value">{{ completed_bookings.count }}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red"><i class="bi bi-x-circle-fill"></i></div>
+    <div>
+      <div class="stat-value">{{ cancelled_bookings.count }}</div>
+      <div class="stat-label">Cancelled</div>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.25rem;">
+
+  <div class="tf-card">
+    <div class="tf-card-header">
+      <div class="tf-card-title"><i class="bi bi-clock-history"></i> Recent Bookings</div>
+      <a href="{% url 'my_bookings' %}" class="btn-outline-tf btn-sm-tf">View All</a>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="tf-table">
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Vehicle</th>
+            <th>Seats</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in recent_bookings %}
+          <tr>
+            <td>
+              <div style="font-weight:600;">{{ booking.trip.origin }}</div>
+              <div style="font-size:.75rem;color:#64748b;">→ {{ booking.trip.destination }}</div>
+            </td>
+            <td style="color:#64748b;">{{ booking.trip.vehicle|default:"—" }}</td>
+            <td>{{ booking.seats }}</td>
+            <td>
+              <span class="badge-status badge-{{ booking.status }}">
+                <i class="bi bi-circle-fill" style="font-size:.45rem;"></i>
+                {{ booking.get_status_display }}
+              </span>
+            </td>
+            <td style="color:#64748b;font-size:.8rem;">{{ booking.booked_at|date:"M d, Y" }}</td>
+            <td>
+              <a href="{% url 'booking_detail' booking.pk %}" class="btn-outline-tf btn-sm-tf">
+                <i class="bi bi-eye"></i> View
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                <i class="bi bi-journal-x"></i>
+                <p>No bookings yet</p>
+                <a href="{% url 'available_trips' %}" class="btn-primary-tf btn-sm-tf">Book Your First Trip</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+    <div class="tf-card">
+      <div class="tf-card-header">
+        <div class="tf-card-title"><i class="bi bi-map-fill"></i> Available Trips</div>
+        <a href="{% url 'available_trips' %}" style="font-size:.8rem;color:var(--primary);font-weight:600;text-decoration:none;">View All</a>
+      </div>
+      <div style="padding:0.5rem 1rem;">
+        {% for trip in available_trips|slice:":4" %}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid #f1f5f9;">
+          <div>
+            <div style="font-size:.85rem;font-weight:600;">{{ trip.origin }} → {{ trip.destination }}</div>
+            <div style="font-size:.72rem;color:#64748b;margin-top:2px;">
+              <i class="bi bi-clock" style="margin-right:3px;"></i>
+              {{ trip.departure_time|date:"M d, Y · H:i"|default:"TBD" }}
+            </div>
+          </div>
+          <a href="{% url 'book_trip' trip.pk %}" class="btn-primary-tf btn-sm-tf">Book</a>
+        </div>
+        {% empty %}
+        <div class="empty-state" style="padding:1.5rem 0.5rem;">
+          <i class="bi bi-compass"></i>
+          <p>No trips available right now</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if notifications %}
+    <div class="tf-card">
+      <div class="tf-card-header">
+        <div class="tf-card-title"><i class="bi bi-bell-fill"></i> Notifications</div>
+        <span style="background:#fff1f2;color:#ef4444;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:100px;">
+          {{ notifications|length }} new
+        </span>
+      </div>
+      <div style="padding:0.5rem 1rem;">
+        {% for notif in notifications %}
+        <div class="notif-item" style="padding:0.75rem 0;border-bottom:1px solid #f1f5f9;">
+          <div style="display:flex;align-items:flex-start;gap:0.5rem;">
+            <span style="font-size:.85rem;">
+              {% if notif.notif_type == 'info' %}ℹ️{% elif notif.notif_type == 'warning' %}⚠️{% else %}🔔{% endif %}
+            </span>
+            <div>
+              <div style="font-size:.82rem;font-weight:700;margin-bottom:2px;">{{ notif.title }}</div>
+              <div style="font-size:.75rem;color:#64748b;">{{ notif.message|truncatewords:12 }}</div>
+            </div>
+          </div>
+          <button class="mark-notif-read btn-outline-tf btn-sm-tf"
+            data-notif-id="{{ notif.pk }}"
+            style="margin-top:0.5rem;font-size:.7rem;padding:3px 10px;">
+            Mark as Read
+          </button>
+          {% csrf_token %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="tf-card">
+      <div class="tf-card-header">
+        <div class="tf-card-title"><i class="bi bi-grid-fill"></i> Quick Links</div>
+      </div>
+      <div style="padding:1rem;display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+        <a href="{% url 'available_trips' %}" class="ql-item">
+          <i class="bi bi-map-fill" style="color:var(--primary);"></i> Browse Trips
+        </a>
+        <a href="{% url 'my_bookings' %}" class="ql-item">
+          <i class="bi bi-journal-bookmark-fill" style="color:var(--success);"></i> My Bookings
+        </a>
+        <a href="{% url 'customer_profile' %}" class="ql-item">
+  <i class="bi bi-person-circle" style="color:var(--cyan);"></i> My Profile
+</a>
+       <a href="{% url 'available_trips' %}" class="ql-item">
+          <i class="bi bi-bus-front-fill" style="color:var(--warning);"></i> Vehicles
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

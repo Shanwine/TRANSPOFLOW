@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-center mt-4">
+  <div class="card shadow-sm" style="width:520px; border-radius:16px; border:none;">
+    <div class="card-body p-4">
+
+      <!-- Header -->
+      <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+        <div style="width:44px;height:44px;background:#eff6ff;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-box-seam" style="color:#3b82f6;font-size:20px;"></i>
+        </div>
+        <div>
+          <h5 class="mb-0 fw-semibold">{% if form.instance.pk %}Edit{% else %}Add{% endif %} Parts Inventory</h5>
+          <small class="text-muted">Fill in the parts details below</small>
+        </div>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <!-- Name & Stock -->
+        <p class="text-uppercase fw-semibold mb-2" style="font-size:11px;color:#9ca3af;letter-spacing:.07em;">Details</p>
+        <div class="row g-3 mb-3">
+          <div class="col-6">
+            <label class="form-label fw-medium" style="font-size:13px;">Name</label>
+            <input type="text" name="name" value="{{ form.name.value|default:'' }}" placeholder="Enter name of parts" class="form-control" style="border-radius:8px;background:#f9fafb;font-size:14px;">
+            <div style="color:#d94040;font-size:.75rem;">{{ form.name.errors }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-medium" style="font-size:13px;">Stock</label>
+            <input type="number" name="stock" value="{{ form.stock.value|default:'' }}" placeholder="Total stocks available" class="form-control" style="border-radius:8px;background:#f9fafb;font-size:14px;">
+            <div style="color:#d94040;font-size:.75rem;">{{ form.stock.errors }}</div>
+          </div>
+        </div>
+
+        <hr class="my-3">
+
+        <!-- Description -->
+        <p class="text-uppercase fw-semibold mb-2" style="font-size:11px;color:#9ca3af;letter-spacing:.07em;">Description</p>
+        <div class="mb-3">
+          <label class="form-label fw-medium" style="font-size:13px;">Parts Description</label>
+          <textarea name="description" placeholder="Part description" rows="3" class="form-control" style="border-radius:8px;background:#f9fafb;font-size:14px;">{{ form.description.value|default:'' }}</textarea>
+          <div style="color:#d94040;font-size:.75rem;">{{ form.description.errors }}</div>
+        </div>
+
+        <hr class="my-3">
+
+        <!-- Status -->
+        <p class="text-uppercase fw-semibold mb-2" style="font-size:11px;color:#9ca3af;letter-spacing:.07em;">Status</p>
+        <div class="mb-4">
+          <label class="form-label fw-medium" style="font-size:13px;">Parts Status</label>
+          <select name="status" class="form-select" style="border-radius:8px;background:#f9fafb;font-size:14px;">
+            <option value="">Choose Status</option>
+            <option value="active" {% if form.status.value == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if form.status.value == 'inactive' %}selected{% endif %}>Inactive</option>
+          </select>
+          <div style="color:#d94040;font-size:.75rem;">{{ form.status.errors }}</div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="d-flex gap-2 pt-2 border-top mt-3">
+          <button type="submit" class="btn btn-dark flex-fill">
+            <i class="bi bi-device-floppy"></i> {% if form.instance.pk %}Update{% else %}Add{% endif %}
+          </button>
+          <a href="{% url 'parts_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .form-control:focus, .form-select:focus { border-color:#3b82f6!important; box-shadow:0 0 0 3px rgba(59,130,246,.12)!important; }
+</style>
+
+{% endblock %}

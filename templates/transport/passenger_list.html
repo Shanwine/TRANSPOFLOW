@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Passengers for Trip: {{ trip }}</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for passenger in passengers %}
+        <tr>
+            <td>{{ passenger.name }}</td>
+            <td>{{ passenger.contact }}</td>
+            <td>
+                <a href="{% url 'passenger_update' passenger.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'passenger_delete' passenger.pk %}" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{% url 'trip_list' %}" class="btn btn-secondary">Back to Trips</a>
+{% endblock %}

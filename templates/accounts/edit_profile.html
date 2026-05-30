@@ -1,0 +1,108 @@
+{% extends 'customer_base.html' %}
+
+{% block title %}Edit Profile{% endblock %}
+{% block topbar_icon %}pencil-square{% endblock %}
+{% block page_title %}Edit Profile{% endblock %}
+{% block nav_profile %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Edit Profile</div>
+    <div class="page-subtitle">Update your personal information</div>
+  </div>
+  <a href="{% url 'customer_profile' %}" class="btn-outline-tf">
+    <i class="bi bi-arrow-left"></i> Back to Profile
+  </a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+    <!-- Personal Info -->
+    <div class="tf-card">
+      <div class="tf-card-header">
+        <div class="tf-card-title"><i class="bi bi-person-lines-fill"></i> Personal Information</div>
+      </div>
+      <div class="tf-card-body">
+
+        <div style="margin-bottom:16px;">
+          <label class="auth-label" for="id_first_name">First Name</label>
+          <input type="text" name="first_name" id="id_first_name" class="auth-input"
+            value="{{ form.first_name.value|default:'' }}" placeholder="First name">
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="auth-label" for="id_last_name">Last Name</label>
+          <input type="text" name="last_name" id="id_last_name" class="auth-input"
+            value="{{ form.last_name.value|default:'' }}" placeholder="Last name">
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="auth-label" for="id_email">Email Address</label>
+          <input type="email" name="email" id="id_email" class="auth-input"
+            value="{{ form.email.value|default:'' }}" placeholder="your@email.com">
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="auth-label" for="id_phone">Phone Number</label>
+          <input type="text" name="phone" id="id_phone" class="auth-input"
+            value="{{ form.phone.value|default:'' }}" placeholder="+63 XXX XXX XXXX">
+          {% if form.phone.errors %}<div style="color:#ef4444;font-size:.78rem;margin-top:4px;">{{ form.phone.errors.0 }}</div>{% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Location & Bio -->
+    <div class="tf-card">
+      <div class="tf-card-header">
+        <div class="tf-card-title"><i class="bi bi-geo-alt-fill"></i> Location & Bio</div>
+      </div>
+      <div class="tf-card-body">
+
+        <div style="margin-bottom:16px;">
+          <label class="auth-label" for="id_city">City</label>
+          <input type="text" name="city" id="id_city" class="auth-input"
+            value="{{ form.city.value|default:'' }}" placeholder="e.g. Manila">
+          {% if form.city.errors %}<div style="color:#ef4444;font-size:.78rem;margin-top:4px;">{{ form.city.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="auth-label" for="id_address">Address</label>
+          <textarea name="address" id="id_address" class="auth-input" rows="2"
+            placeholder="Street, Barangay, City">{{ form.address.value|default:'' }}</textarea>
+          {% if form.address.errors %}<div style="color:#ef4444;font-size:.78rem;margin-top:4px;">{{ form.address.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label class="auth-label" for="id_bio">About Me</label>
+          <textarea name="bio" id="id_bio" class="auth-input" rows="3"
+            placeholder="Tell us a bit about yourself…">{{ form.bio.value|default:'' }}</textarea>
+          {% if form.bio.errors %}<div style="color:#ef4444;font-size:.78rem;margin-top:4px;">{{ form.bio.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div style="margin-bottom:0;">
+          <label class="auth-label" for="id_avatar">Profile Photo</label>
+          {% if profile.avatar %}
+            <div style="margin-bottom:8px;">
+              <img src="{{ profile.avatar.url }}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;">
+            </div>
+          {% endif %}
+          <input type="file" name="avatar" id="id_avatar" class="auth-input" accept="image/*" style="padding:8px;">
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:20px;display:flex;gap:12px;justify-content:flex-end;">
+    <a href="{% url 'customer_profile' %}" class="btn-outline-tf">Cancel</a>
+    <button type="submit" class="btn-primary-tf">
+      <i class="bi bi-check-lg"></i> Save Changes
+    </button>
+  </div>
+</form>
+{% endblock %}

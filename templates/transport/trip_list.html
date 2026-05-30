@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block page_title %}Trip List{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h4 class="fw-bold mb-0" style="color:#0f172a;">Trip Management</h4>
+    <small class="text-muted">Manage all trips and assignments</small>
+  </div>
+  <a href="{% url 'trip_create' %}" class="btn btn-primary d-flex align-items-center gap-2" style="border-radius:10px;font-weight:600;">
+    <i class="bi bi-plus-circle-fill"></i> Add Trip
+  </a>
+</div>
+
+<div class="card" style="border-radius:16px;border:1px solid #e2e8f0;box-shadow:0 2px 14px rgba(0,0,0,.06);">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-4 py-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;font-weight:700;border-bottom:1px solid #e2e8f0;">Vehicle</th>
+            <th class="px-4 py-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;font-weight:700;border-bottom:1px solid #e2e8f0;">Driver</th>
+            <th class="px-4 py-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;font-weight:700;border-bottom:1px solid #e2e8f0;">Route</th>
+            <th class="px-4 py-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;font-weight:700;border-bottom:1px solid #e2e8f0;">Departure</th>
+            <th class="px-4 py-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;font-weight:700;border-bottom:1px solid #e2e8f0;">Fare</th>
+            <th class="px-4 py-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;font-weight:700;border-bottom:1px solid #e2e8f0;">Status</th>
+            <th class="px-4 py-3" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;font-weight:700;border-bottom:1px solid #e2e8f0;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for trip in trips %}
+          <tr style="border-bottom:1px solid #f1f5f9;transition:background .15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+
+            <!-- Vehicle -->
+            <td class="px-4 py-3">
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:36px;height:36px;border-radius:10px;
+                  {% if trip.vehicle.type == 'bus' %}background:#eff6ff;color:#2563eb;
+                  {% elif trip.vehicle.type == 'truck' %}background:#f0fdf4;color:#16a34a;
+                  {% elif trip.vehicle.type == 'van' %}background:#fdf4ff;color:#9333ea;
+                  {% else %}background:#fff7ed;color:#ea580c;{% endif %}
+                  display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="bi bi-{% if trip.vehicle.type == 'bus' %}bus-front{% elif trip.vehicle.type == 'truck' %}scooter{% elif trip.vehicle.type == 'van' %}truck{% else %}car-front{% endif %}-fill"></i>
+                </div>
+                <div>
+                  <div class="fw-semibold" style="color:#0f172a;">{{ trip.vehicle.name|default:"—" }}</div>
+                  <div style="font-size:11px;color:#94a3b8;">{{ trip.vehicle.plate_number|default:"" }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Driver -->
+            <td class="px-4 py-3">
+              {% if trip.driver %}
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#3b82f6);
+                            display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px;flex-shrink:0;">
+                  {{ trip.driver.name|first|upper }}
+                </div>
+                <span style="color:#374151;font-weight:500;">{{ trip.driver.name }}</span>
+              </div>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Route -->
+            <td class="px-4 py-3">
+              {% if trip.origin and trip.origin != 'TBD' %}
+              <div style="font-weight:600;color:#0f172a;">{{ trip.origin }}</div>
+              <div style="font-size:11px;color:#64748b;display:flex;align-items:center;gap:4px;">
+                <i class="bi bi-arrow-right"></i> {{ trip.destination }}
+              </div>
+              {% else %}
+              <span style="font-size:12px;background:#f0fdf4;color:#16a34a;padding:3px 10px;border-radius:20px;font-weight:600;">
+                <i class="bi bi-geo-alt"></i> Ride Booking
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- Departure -->
+            <td class="px-4 py-3">
+              {% if trip.departure_time %}
+              <div style="font-weight:600;font-size:12px;color:#0f172a;">{{ trip.departure_time|date:"M d, Y" }}</div>
+              <div style="font-size:11px;color:#64748b;">{{ trip.departure_time|date:"h:i A" }}</div>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Fare -->
+            <td class="px-4 py-3">
+              {% if trip.effective_fare %}
+              <div style="font-weight:700;color:#4f46e5;">₱{{ trip.effective_fare }}</div>
+              {% if trip.rate_per_km %}
+              <div style="font-size:11px;color:#94a3b8;">₱{{ trip.rate_per_km }}/km</div>
+              {% else %}
+              <div style="font-size:11px;color:#94a3b8;">per seat</div>
+              {% endif %}
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Status -->
+            <td class="px-4 py-3">
+              <span style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;
+                {% if trip.status == 'pending' %}background:#fef3c7;color:#92400e;border:1px solid #fde68a;
+                {% elif trip.status == 'ongoing' %}background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;
+                {% elif trip.status == 'completed' %}background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;
+                {% else %}background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;{% endif %}">
+                {% if trip.status == 'pending' %}⏳ Pending
+                {% elif trip.status == 'ongoing' %}🚌 Ongoing
+                {% elif trip.status == 'completed' %}✔ Completed
+                {% else %}✖ Cancelled{% endif %}
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-4 py-3">
+              <div class="d-flex gap-2">
+                <a href="{% url 'trip_update' trip.pk %}" 
+                   style="padding:6px 14px;background:#fef3c7;color:#92400e;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #fde68a;">
+                  <i class="bi bi-pencil-fill"></i> Edit
+                </a>
+                <a href="{% url 'passenger_list' trip.pk %}"
+                   style="padding:6px 14px;background:#eff6ff;color:#1d4ed8;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #bfdbfe;">
+                  <i class="bi bi-people-fill"></i> Passengers
+                </a>
+                <a href="{% url 'trip_delete' trip.pk %}"
+                   style="padding:6px 14px;background:#fee2e2;color:#991b1b;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid #fca5a5;"
+                   onclick="return confirm('Delete this trip?')">
+                  <i class="bi bi-trash-fill"></i>
+                </a>
+              </div>
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <i class="bi bi-signpost-split" style="font-size:40px;display:block;margin-bottom:12px;color:#cbd5e1;"></i>
+              <p class="fw-semibold">No trips yet.</p>
+              <a href="{% url 'trip_create' %}" class="btn btn-primary btn-sm mt-2">
+                <i class="bi bi-plus-circle"></i> Add First Trip
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

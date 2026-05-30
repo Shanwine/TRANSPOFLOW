@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block page_title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Fuel Log{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card p-4">
+      <h5 class="fw-bold mb-4">
+        <i class="bi bi-fuel-pump"></i>
+        {% if form.instance.pk %}Edit Fuel Log{% else %}Add Fuel Log{% endif %}
+      </h5>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Vehicle</label>
+            {{ form.vehicle }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Driver</label>
+            {{ form.driver }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Fuel Type</label>
+            {{ form.fuel_type }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Date</label>
+            {{ form.date }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Liters</label>
+            {{ form.liters }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Price per Liter (₱)</label>
+            {{ form.price_per_liter }}
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Odometer (km)</label>
+            {{ form.odometer }}
+          </div>
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">Station</label>
+            {{ form.station }}
+          </div>
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">Notes</label>
+            {{ form.notes }}
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Save
+          </button>
+          <a href="{% url 'fuel_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+  <div>
+    <h4 style="margin:0;font-weight:700;">Customer Bookings</h4>
+    <p style="margin:0;color:#64748b;font-size:14px;">Overview of all customer trip bookings</p>
+  </div>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+  <div style="padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:14px;
+    {% if message.tags == 'success' %}background:#ecfdf5;border:1px solid #10b981;color:#047857;
+    {% else %}background:#fef2f2;border:1px solid #ef4444;color:#b91c1c;{% endif %}">
+    {{ message }}
+  </div>
+  {% endfor %}
+{% endif %}
+
+{% if bookings %}
+<div style="display:flex;flex-direction:column;gap:12px;">
+  {% for booking in bookings %}
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+
+    <!-- Left: Info -->
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="width:44px;height:44px;border-radius:12px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i class="bi bi-person-fill" style="color:#3b82f6;font-size:18px;"></i>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:15px;color:#0f172a;">{{ booking.customer.get_full_name|default:booking.customer.username }}</div>
+        <div style="font-size:13px;color:#334155;margin-top:2px;">
+          <i class="bi bi-geo-alt-fill" style="color:#3b82f6;"></i>
+          {{ booking.trip.origin }} → {{ booking.trip.destination }}
+        </div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:3px;">
+          <i class="bi bi-truck"></i> {{ booking.trip.vehicle.name|default:"No vehicle" }} &nbsp;·&nbsp;
+          <i class="bi bi-person"></i> {{ booking.trip.driver.name|default:"No driver" }} &nbsp;·&nbsp;
+          <i class="bi bi-people-fill"></i> {{ booking.seats }} seat(s) &nbsp;·&nbsp;
+          <i class="bi bi-calendar3"></i> {{ booking.booked_at|date:"M d, Y" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Status ONLY (no buttons) -->
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="padding:5px 14px;border-radius:99px;font-size:12px;font-weight:600;
+        {% if booking.status == 'pending' %}background:#fffbeb;color:#b45309;border:1px solid #f59e0b;
+        {% elif booking.status == 'confirmed' %}background:#ecfdf5;color:#047857;border:1px solid #10b981;
+        {% elif booking.status == 'completed' %}background:#eef2ff;color:#4338ca;border:1px solid #6366f1;
+        {% elif booking.status == 'cancelled' %}background:#fef2f2;color:#b91c1c;border:1px solid #ef4444;
+        {% endif %}">
+        {% if booking.status == 'pending' %}<i class="bi bi-hourglass-split"></i>
+        {% elif booking.status == 'confirmed' %}<i class="bi bi-check-circle-fill"></i>
+        {% elif booking.status == 'completed' %}<i class="bi bi-flag-fill"></i>
+        {% elif booking.status == 'cancelled' %}<i class="bi bi-x-circle-fill"></i>
+        {% endif %}
+        {{ booking.get_status_display }}
+      </span>
+    </div>
+
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div style="text-align:center;padding:60px 20px;background:#fff;border-radius:16px;border:1px solid #e2e8f0;">
+  <i class="bi bi-journal-x" style="font-size:48px;color:#cbd5e1;"></i>
+  <p style="margin-top:16px;color:#64748b;font-size:15px;">No bookings yet.</p>
+</div>
+{% endif %}
+
+{% endblock %}

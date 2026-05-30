@@ -1,0 +1,92 @@
+{% extends 'customer_base.html' %}
+
+{% block title %}Browse Vehicles{% endblock %}
+{% block topbar_icon %}truck-front{% endblock %}
+{% block page_title %}Browse Vehicles{% endblock %}
+{% block nav_vehicles %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Available Vehicles</div>
+    <div class="page-subtitle">Browse our fleet of transport vehicles</div>
+  </div>
+</div>
+
+<!-- Search & Filter -->
+<div class="tf-card" style="margin-bottom:24px;">
+  <div class="tf-card-body" style="padding:16px 20px;">
+    <form method="get" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <div class="search-bar" style="flex:1;min-width:200px;">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" id="vehicle-search-input" value="{{ query }}" placeholder="Search by name or plate number…">
+      </div>
+      <select name="type" class="auth-input" style="width:auto;padding:9px 14px;font-size:.875rem;">
+        <option value="">All Types</option>
+        {% for value, label in type_choices %}
+          <option value="{{ value }}" {% if vehicle_type == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-primary-tf">
+        <i class="bi bi-funnel-fill"></i> Filter
+      </button>
+      {% if query or vehicle_type %}
+        <a href="{% url 'customer_vehicles' %}" class="btn-outline-tf">
+          <i class="bi bi-x"></i> Clear
+        </a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- Vehicle Grid -->
+{% if vehicles %}
+<div class="vehicles-grid">
+  {% for vehicle in vehicles %}
+  <div class="vehicle-card-wrapper">
+    <div class="vehicle-card" data-name="{{ vehicle.name }}">
+      <div class="vehicle-card-img">
+        {% if vehicle.type == 'bus' %}<i class="bi bi-bus-front-fill"></i>
+        {% elif vehicle.type == 'truck' %}<i class="bi bi-truck-front-fill"></i>
+        {% elif vehicle.type == 'van' %}<i class="bi bi-minecart-loaded"></i>
+        {% else %}<i class="bi bi-car-front-fill"></i>{% endif %}
+      </div>
+      <div class="vehicle-card-body">
+        <div class="vehicle-card-name">{{ vehicle.name }}</div>
+        <div class="vehicle-card-meta">
+          <i class="bi bi-tag-fill"></i> {{ vehicle.get_type_display }}
+          &nbsp;·&nbsp;
+          <i class="bi bi-credit-card-2-front"></i> {{ vehicle.plate_number }}
+        </div>
+        {% if vehicle.description %}
+          <div style="font-size:.78rem;color:#64748b;margin-bottom:10px;line-height:1.5;">{{ vehicle.description|truncatewords:12 }}</div>
+        {% endif %}
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="badge-status badge-active">
+            <i class="bi bi-circle-fill" style="font-size:.45rem;"></i> Available
+          </span>
+          <span style="font-size:.78rem;color:#64748b;">
+            <i class="bi bi-people-fill"></i> {{ vehicle.capacity }} seats
+          </span>
+        </div>
+      </div>
+      <div class="vehicle-card-footer">
+        <span style="font-size:.78rem;color:#64748b;">{{ vehicle.get_type_display }}</span>
+        <a href="{% url 'available_trips' %}?q={{ vehicle.name }}" class="btn-primary-tf btn-sm-tf">
+          <i class="bi bi-calendar-plus"></i> View Trips
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="bi bi-truck-front"></i>
+  <p>No vehicles found{% if query %} for "<strong>{{ query }}</strong>"{% endif %}.</p>
+  {% if query or vehicle_type %}
+    <a href="{% url 'customer_vehicles' %}" class="btn-outline-tf">Clear Filters</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

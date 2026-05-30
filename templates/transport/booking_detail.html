@@ -1,0 +1,119 @@
+{% extends 'customer_base.html' %}
+
+{% block title %}Booking #{{ booking.pk }}{% endblock %}
+{% block topbar_icon %}journal-check{% endblock %}
+{% block page_title %}Booking Details{% endblock %}
+{% block nav_bookings %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">Booking #{{ booking.pk }}</div>
+    <div class="page-subtitle">Detailed view of your booking</div>
+  </div>
+  <a href="{% url 'my_bookings' %}" class="btn-outline-tf">
+    <i class="bi bi-arrow-left"></i> Back to Bookings
+  </a>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px;">
+
+  <!-- Booking Status Card -->
+  <div class="tf-card">
+    <div class="tf-card-header">
+      <div class="tf-card-title"><i class="bi bi-info-circle-fill"></i> Booking Info</div>
+      <span class="badge-status badge-{{ booking.status }}">
+        <i class="bi bi-circle-fill" style="font-size:.45rem;"></i>
+        {{ booking.get_status_display }}
+      </span>
+    </div>
+    <div class="tf-card-body">
+      <table style="width:100%;font-size:.875rem;">
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;width:45%;">Booking ID</td>
+          <td style="padding:10px 0;font-weight:700;">#{{ booking.pk }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Customer</td>
+          <td style="padding:10px 0;">{{ booking.customer.get_full_name|default:booking.customer.username }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Seats Booked</td>
+          <td style="padding:10px 0;font-weight:700;font-size:1.1rem;">{{ booking.seats }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Booked At</td>
+          <td style="padding:10px 0;">{{ booking.booked_at|date:"M d, Y · H:i" }}</td>
+        </tr>
+        {% if booking.cancel_reason %}
+        <tr>
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Cancel Reason</td>
+          <td style="padding:10px 0;color:#ef4444;">{{ booking.cancel_reason }}</td>
+        </tr>
+        {% endif %}
+      </table>
+
+      {% if booking.status in 'pending,confirmed' %}
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;">
+        <form method="post" action="{% url 'cancel_booking' booking.pk %}" id="cancel-form-detail">
+          {% csrf_token %}
+          <div style="margin-bottom:10px;">
+            <label class="auth-label" for="cancel-reason">Reason (optional)</label>
+            <input type="text" name="reason" id="cancel-reason" class="auth-input" placeholder="Why are you cancelling?">
+          </div>
+          <button type="button" class="btn-danger-tf cancel-booking-btn" data-form-id="cancel-form-detail" style="width:100%;justify-content:center;">
+            <i class="bi bi-x-circle-fill"></i> Cancel This Booking
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Trip Details Card -->
+  <div class="tf-card">
+    <div class="tf-card-header">
+      <div class="tf-card-title"><i class="bi bi-map-fill"></i> Trip Details</div>
+    </div>
+    <div class="tf-card-body">
+
+      <!-- Route Visual -->
+      <div style="background:linear-gradient(135deg,#4f46e5,#06b6d4);border-radius:10px;padding:18px;color:#fff;margin-bottom:18px;text-align:center;">
+        <div style="font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;">From</div>
+        <div style="font-size:1.2rem;font-weight:800;margin:4px 0;">{{ booking.trip.origin }}</div>
+        <i class="bi bi-arrow-down-circle-fill" style="font-size:1.2rem;opacity:.6;margin:6px 0;display:block;"></i>
+        <div style="font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.08em;">To</div>
+        <div style="font-size:1.2rem;font-weight:800;margin:4px 0;">{{ booking.trip.destination }}</div>
+      </div>
+
+      <table style="width:100%;font-size:.875rem;">
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;width:45%;">Vehicle</td>
+          <td style="padding:10px 0;">{{ booking.trip.vehicle.name|default:"TBA" }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Plate No.</td>
+          <td style="padding:10px 0;">{{ booking.trip.vehicle.plate_number|default:"—" }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Driver</td>
+          <td style="padding:10px 0;">{{ booking.trip.driver.name|default:"TBA" }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Departure</td>
+          <td style="padding:10px 0;">
+            {% if booking.trip.departure_time %}{{ booking.trip.departure_time|date:"M d, Y · H:i" }}{% else %}TBD{% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Trip Status</td>
+          <td style="padding:10px 0;">
+            <span class="badge-status badge-{{ booking.trip.status }}">{{ booking.trip.get_status_display }}</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

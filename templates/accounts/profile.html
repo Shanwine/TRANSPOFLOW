@@ -1,0 +1,125 @@
+{% extends 'customer_base.html' %}
+
+{% block title %}My Profile{% endblock %}
+{% block topbar_icon %}person-circle{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block nav_profile %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">My Profile</div>
+    <div class="page-subtitle">View and manage your account details</div>
+  </div>
+  <a href="{% url 'edit_profile' %}" class="btn-primary-tf">
+    <i class="bi bi-pencil-fill"></i> Edit Profile
+  </a>
+</div>
+
+<!-- Hero -->
+<div class="profile-hero">
+  <div class="profile-avatar-lg">
+    {% if profile.avatar %}
+      <img src="{{ profile.avatar.url }}" alt="Avatar">
+    {% else %}
+      <i class="bi bi-person-fill"></i>
+    {% endif %}
+  </div>
+  <div style="font-size:1.4rem;font-weight:800;margin-bottom:4px;">
+    {{ user.get_full_name|default:user.username }}
+  </div>
+  <div style="font-size:.85rem;opacity:.8;margin-bottom:10px;">@{{ user.username }}</div>
+  <span style="background:rgba(255,255,255,.2);padding:4px 14px;border-radius:99px;font-size:.78rem;font-weight:600;">
+    <i class="bi bi-shield-check"></i> {{ profile.get_role_display|default:"Customer" }}
+  </span>
+</div>
+
+<!-- Info Grid -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+  <div class="tf-card">
+    <div class="tf-card-header">
+      <div class="tf-card-title"><i class="bi bi-person-lines-fill"></i> Personal Info</div>
+    </div>
+    <div class="tf-card-body">
+      <table style="width:100%;font-size:.875rem;">
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;width:40%;">Full Name</td>
+          <td style="padding:10px 0;">{{ user.get_full_name|default:"—" }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Username</td>
+          <td style="padding:10px 0;">{{ user.username }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Email</td>
+          <td style="padding:10px 0;">{{ user.email|default:"—" }}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Member Since</td>
+          <td style="padding:10px 0;">{{ user.date_joined|date:"M d, Y" }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="tf-card">
+    <div class="tf-card-header">
+      <div class="tf-card-title"><i class="bi bi-geo-alt-fill"></i> Contact & Location</div>
+    </div>
+    <div class="tf-card-body">
+      <table style="width:100%;font-size:.875rem;">
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;width:40%;">Phone</td>
+          <td style="padding:10px 0;">{{ profile.phone|default:"—" }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">City</td>
+          <td style="padding:10px 0;">{{ profile.city|default:"—" }}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;color:#64748b;font-weight:600;">Address</td>
+          <td style="padding:10px 0;">{{ profile.address|default:"—" }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{% if profile.bio %}
+<div class="tf-card" style="margin-top:20px;">
+  <div class="tf-card-header">
+    <div class="tf-card-title"><i class="bi bi-chat-quote-fill"></i> About Me</div>
+  </div>
+  <div class="tf-card-body">
+    <p style="font-size:.9rem;line-height:1.7;color:#475569;margin:0;">{{ profile.bio }}</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;">
+  <a href="{% url 'my_bookings' %}" class="stat-card" style="text-decoration:none;">
+    <div class="stat-icon blue"><i class="bi bi-journal-bookmark-fill"></i></div>
+    <div>
+      <div class="stat-label">My Bookings</div>
+      <div style="font-size:.8rem;color:#4f46e5;font-weight:600;margin-top:2px;">View All →</div>
+    </div>
+  </a>
+  <a href="{% url 'available_trips' %}" class="stat-card" style="text-decoration:none;">
+    <div class="stat-icon green"><i class="bi bi-map-fill"></i></div>
+    <div>
+      <div class="stat-label">Available Trips</div>
+      <div style="font-size:.8rem;color:#10b981;font-weight:600;margin-top:2px;">Browse →</div>
+    </div>
+  </a>
+  <a href="{% url 'customer_vehicles' %}" class="stat-card" style="text-decoration:none;">
+    <div class="stat-icon cyan"><i class="bi bi-truck-front-fill"></i></div>
+    <div>
+      <div class="stat-label">Vehicles</div>
+      <div style="font-size:.8rem;color:#06b6d4;font-weight:600;margin-top:2px;">Explore →</div>
+    </div>
+  </a>
+</div>
+{% endblock %}

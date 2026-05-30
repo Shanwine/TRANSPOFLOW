@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TranspoFlow – Driver Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+    }
+    .container {
+      display: flex;
+      width: 900px;
+      min-height: 560px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+    }
+    .left {
+      flex: 1;
+      background: linear-gradient(135deg, #1e2a35, #00bcd4, #0097a7);
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-align: center;
+    }
+    .bus-icon {
+      width: 90px; height: 90px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 42px;
+      margin-bottom: 24px;
+    }
+    .left h1 { font-size: 32px; font-weight: 800; margin-bottom: 6px; }
+    .left p  { font-size: 14px; opacity: 0.85; margin-bottom: 36px; }
+    .features { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+    .feature-item i { font-size: 16px; }
+    .right {
+      width: 420px;
+      background: #fff;
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .driver-icon {
+      width: 60px; height: 60px;
+      background: #e0f7fa;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      color: #00bcd4;
+      margin-bottom: 16px;
+    }
+    .right h2 { font-size: 22px; font-weight: 700; color: #1e2a35; margin-bottom: 4px; }
+    .right .subtitle { font-size: 13px; color: #9ca3af; margin-bottom: 24px; }
+    .driver-badge {
+      background: #e0f7fa;
+      color: #0097a7;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      justify-content: center;
+    }
+    .form-group { width: 100%; margin-bottom: 16px; }
+    .form-group label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #6b7280;
+      letter-spacing: 0.8px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      background: #f8fafc;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 10px 14px;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .input-wrap:focus-within { border-color: #00bcd4; }
+    .input-wrap i { color: #9ca3af; font-size: 14px; }
+    .input-wrap input {
+      border: none; background: none; outline: none;
+      font-size: 14px; color: #1e2a35; flex: 1;
+    }
+    .alert {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .btn-signin {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #00bcd4, #0097a7);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-signin:hover { opacity: 0.9; }
+    .links {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .links a {
+      color: #00bcd4;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .links a:hover { text-decoration: underline; }
+    .divider {
+      width: 100%;
+      border: none;
+      border-top: 1px solid #f3f4f6;
+      margin: 6px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="left">
+    <div class="bus-icon">🚌</div>
+    <h1>TranspoFlow</h1>
+    <p>Smart Transportation Management System</p>
+    <div class="features">
+      <div class="feature-item"><i class="fas fa-location-dot"></i> Live Driver Tracking</div>
+      <div class="feature-item"><i class="fas fa-route"></i> Trip Management</div>
+      <div class="feature-item"><i class="fas fa-calendar-check"></i> Schedule Overview</div>
+      <div class="feature-item"><i class="fas fa-gas-pump"></i> Fuel Monitoring</div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="driver-icon"><i class="fas fa-id-badge"></i></div>
+    <h2>Driver Portal</h2>
+    <p class="subtitle">Transflow Management System</p>
+
+    <div class="driver-badge">
+      <i class="fas fa-steering-wheel"></i> Driver Access Only
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-error">
+          <i class="fas fa-circle-exclamation"></i> {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="POST" style="width:100%;">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>USERNAME</label>
+        <div class="input-wrap">
+          <i class="fas fa-user"></i>
+          <input type="text" name="username" placeholder="driver username" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>PASSWORD</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" name="password" placeholder="••••••••" required/>
+        </div>
+      </div>
+      <button type="submit" class="btn-signin">
+        <i class="fas fa-right-to-bracket"></i> Sign In as Driver
+      </button>
+    </form>
+
+    <div class="links">
+      <span>Are you an admin? <a href="/accounts/admin-login/">Admin Login</a></span>
+      <hr class="divider"/>
+      <span>Are you a passenger? <a href="/accounts/login/">Passenger Login</a></span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

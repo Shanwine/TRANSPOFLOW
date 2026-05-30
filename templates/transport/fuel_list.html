@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block page_title %}Fuel Logs{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-fuel-pump"></i> Fuel Logs</h4>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card p-3 text-center">
+            <div class="text-muted small">Total Records</div>
+            <div class="fw-bold fs-4">{{ fuels|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3 text-center">
+            <div class="text-muted small">Total Liters</div>
+            <div class="fw-bold fs-4">{{ total_liters|floatformat:2 }} L</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3 text-center">
+            <div class="text-muted small">Total Cost</div>
+            <div class="fw-bold fs-4">₱{{ total_cost|floatformat:2 }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Requests Alert -->
+{% with pending=fuels|length %}
+<div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <span>May mga <strong>pending fuel requests</strong> mula sa mga driver na naghihintay ng approval.</span>
+</div>
+{% endwith %}
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Vehicle</th>
+                    <th>Driver</th>
+                    <th>Fuel Type</th>
+                    <th>Liters</th>
+                    <th>Price/L</th>
+                    <th>Total Cost</th>
+                    <th>Odometer</th>
+                    <th>Station</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fuel in fuels %}
+                <tr>
+                    <td>{{ fuel.date }}</td>
+                    <td>{{ fuel.vehicle }}</td>
+                    <td>{{ fuel.driver|default:"-" }}</td>
+                    <td>
+                        <span class="badge bg-secondary">{{ fuel.get_fuel_type_display }}</span>
+                    </td>
+                    <td>{{ fuel.liters }} L</td>
+                    <td>₱{{ fuel.price_per_liter }}</td>
+                    <td>₱{{ fuel.total_cost }}</td>
+                    <td>{{ fuel.odometer }} km</td>
+                    <td>{{ fuel.station|default:"-" }}</td>
+                    <td>
+                        {% if fuel.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">⏳ Pending</span>
+                        {% elif fuel.status == 'approved' %}
+                            <span class="badge bg-success">✅ Approved</span>
+                        {% elif fuel.status == 'rejected' %}
+                            <span class="badge bg-danger">❌ Rejected</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if fuel.status == 'pending' %}
+                            <!-- Approve -->
+                            <form method="POST" action="{% url 'approve_fuel' fuel.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success" title="Approve">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+                            <!-- Reject -->
+                            <form method="POST" action="{% url 'reject_fuel' fuel.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger" title="Reject">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </form>
+                        {% else %}
+                            <a href="{% url 'fuel_update' fuel.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'fuel_delete' fuel.pk %}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="11" class="text-center text-muted py-4">No fuel logs yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

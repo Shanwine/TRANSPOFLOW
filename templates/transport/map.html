@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% block page_title %}Live Tracking{% endblock %}
+
+{% block content %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0"><i class="bi bi-geo-alt"></i> Live Driver Tracking</h4>
+    <div class="d-flex gap-2 align-items-center">
+        <span id="status-badge" class="badge bg-secondary">
+            <i class="bi bi-circle-fill"></i> Connecting...
+        </span>
+        <button class="btn btn-sm btn-outline-primary" onclick="updateDriverLocation()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <!-- Info Card -->
+    <div class="col-md-4">
+        <div class="card h-100 p-3">
+            <div class="text-muted small mb-3 fw-bold text-uppercase">
+                <i class="bi bi-info-circle"></i> Driver Info
+            </div>
+
+            <div id="no-driver" class="text-center text-muted py-4">
+                <i class="bi bi-person-x" style="font-size:2.5rem;"></i>
+                <p class="mt-2 mb-0 small">No driver location available</p>
+            </div>
+
+            <div id="driver-info" style="display:none;">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div style="width:48px;height:48px;background:#e8f0fe;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-person-fill text-primary" style="font-size:1.5rem;"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" id="info-driver">—</div>
+                        <div class="text-muted small">Active Driver</div>
+                    </div>
+                </div>
+
+                <hr class="my-2">
+
+                <div class="small">
+                    <div class="d-flex justify-content-between py-1">
+                        <span class="text-muted"><i class="bi bi-geo"></i> Latitude</span>
+                        <span id="info-lat" class="fw-semibold">—</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span class="text-muted"><i class="bi bi-geo"></i> Longitude</span>
+                        <span id="info-lng" class="fw-semibold">—</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span class="text-muted"><i class="bi bi-clock"></i> Last Update</span>
+                        <span id="info-time" class="fw-semibold">—</span>
+                    </div>
+                </div>
+
+                <hr class="my-2">
+
+                <button class="btn btn-sm btn-primary w-100 mt-1" onclick="centerMap()">
+                    <i class="bi bi-crosshair"></i> Center on Driver
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map -->
+    <div class="col-md-8">
+        <div class="card p-0 overflow-hidden">
+            <div id="map" style="height:480px; border-radius:10px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Log -->
+<div class="card p-3">
+    <div class="text-muted small fw-bold text-uppercase mb-2">
+        <i class="bi bi-list-ul"></i> Activity Log
+    </div>
+    <div id="activity-log" style="max-height:150px; overflow-y:auto; font-size:13px;">
+        <div class="text-muted text-center py-2">No activity yet.</div>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Init map - centered on Philippines
+    var map = L.map('map').setView([12.8797, 121.7740], 6);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var driverMarker = null;
+    var driverLat = null;
+    var driverLng = null;
+    var lastDriver = null;
+
+    // Custom bus icon
+    var busIcon = L.divIcon({
+        html: `<div style="
+            background: #4a90d9;
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        ">🚌</div>`,
+        className: '',
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+    });
+
+    function setStatus(type, text) {
+        var badge = document.getElementById('status-badge');
+        badge.className = 'badge bg-' + type;
+        badge.innerHTML = '<i class="bi bi-circle-fill"></i> ' + text;
+    }
+
+    function addLog(message) {
+        var log = document.getElementById('activity-log');
+        var time = new Date().toLocaleTimeString();
+        var entry = document.createElement('div');
+        entry.className = 'py-1 border-bottom text-muted';
+        entry.innerHTML = '<span class="text-secondary">' + time + '</span> — ' + message;
+
+        // Remove "no activity" placeholder
+        if (log.querySelector('.text-center')) {
+            log.innerHTML = '';
+        }
+        log.prepend(entry);
+
+        // Keep only last 20 logs
+        var entries = log.querySelectorAll('div');
+        if (entries.length > 20) entries[entries.length - 1].remove();
+    }
+
+    function centerMap() {
+        if (driverLat && driverLng) {
+            map.setView([driverLat, driverLng], 15);
+        }
+    }
+
+    function updateDriverLocation() {
+    fetch('/driver-location/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.drivers && data.drivers.length > 0) {
+                var data = data.drivers[0]; // kunin ang unang driver
+                var lat = parseFloat(data.lat);
+                var lng = parseFloat(data.lng);
+                driverLat = lat;
+                driverLng = lng;
+                var pos = [lat, lng];
+
+                if (driverMarker) {
+                    driverMarker.setLatLng(pos);
+                } else {
+                    driverMarker = L.marker(pos, { icon: busIcon })
+                        .addTo(map)
+                        .bindPopup(`
+                            <div style="text-align:center; padding:4px;">
+                                <strong>🚌 ${data.driver}</strong><br>
+                                <small>Status: ${data.status}</small><br>
+                                <small>Updated: ${data.updated_at}</small>
+                            </div>
+                        `)
+                        .openPopup();
+                    map.setView(pos, 13);
+                }
+
+                document.getElementById('no-driver').style.display = 'none';
+                document.getElementById('driver-info').style.display = 'block';
+                document.getElementById('info-driver').textContent = data.driver;
+                document.getElementById('info-lat').textContent = lat.toFixed(5);
+                document.getElementById('info-lng').textContent = lng.toFixed(5);
+                document.getElementById('info-time').textContent = data.updated_at;
+
+                setStatus('success', 'Live');
+
+                if (lastDriver !== data.driver) {
+                    addLog('Driver <strong>' + data.driver + '</strong> is now being tracked.');
+                    lastDriver = data.driver;
+                }
+
+            } else {
+                setStatus('secondary', 'No Signal');
+                document.getElementById('no-driver').style.display = 'block';
+                document.getElementById('driver-info').style.display = 'none';
+            }
+        })
+        .catch(() => {
+            setStatus('danger', 'Offline');
+            addLog('Connection lost. Retrying...');
+        });
+}
+
+    updateDriverLocation();
+    setInterval(updateDriverLocation, 5000);
+</script>
+{% endblock %}  

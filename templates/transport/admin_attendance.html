@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="page-header mb-4">
+  <h4 class="fw-bold">Driver Attendance</h4>
+  <small class="text-muted">Attendance records ng lahat ng drivers</small>
+</div>
+
+<!-- Filter -->
+<div class="card mb-4" style="border-radius:12px;border:1px solid #e2e8f0;">
+  <div class="card-body p-3">
+    <form method="get" class="d-flex gap-3 align-items-end flex-wrap">
+      <div>
+        <label class="form-label fw-semibold" style="font-size:12px;">Date</label>
+        <input type="date" name="date" value="{{ date_filter }}" class="form-control" style="border-radius:8px;font-size:13px;">
+      </div>
+      <div>
+        <label class="form-label fw-semibold" style="font-size:12px;">Driver</label>
+        <select name="driver" class="form-control" style="border-radius:8px;font-size:13px;">
+          <option value="">All Drivers</option>
+          {% for driver in drivers %}
+            <option value="{{ driver.id }}" {% if driver_filter == driver.id|stringformat:'s' %}selected{% endif %}>
+              {{ driver.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <button type="submit" class="btn btn-primary" style="border-radius:8px;font-size:13px;">
+          <i class="bi bi-search"></i> Filter
+        </button>
+        <a href="{% url 'admin_attendance_list' %}" class="btn btn-outline-secondary ms-2" style="border-radius:8px;font-size:13px;">
+          <i class="bi bi-x"></i> Clear
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card" style="border-radius:12px;border:1px solid #e2e8f0;">
+  <div class="card-body p-0">
+    <div class="d-flex align-items-center justify-content-between px-4 py-3" style="border-bottom:1px solid #f1f5f9;">
+      <h6 class="fw-bold mb-0"><i class="bi bi-clipboard-check me-2"></i>Attendance Records</h6>
+      <span class="badge bg-primary">{{ attendances|length }} record{{ attendances|length|pluralize }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:13px;">
+        <thead style="background:#f8fafc;">
+          <tr>
+            <th class="px-4 py-3">Driver</th>
+            <th class="px-4 py-3">Date</th>
+            <th class="px-4 py-3">Time In</th>
+            <th class="px-4 py-3">Time Out</th>
+            <th class="px-4 py-3">Duration</th>
+            <th class="px-4 py-3">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for att in attendances %}
+          <tr>
+            <td class="px-4 py-3">
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;">
+                  {{ att.driver.name|first|upper }}
+                </div>
+                <span class="fw-semibold">{{ att.driver.name }}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3">{{ att.date|date:"M d, Y" }}</td>
+            <td class="px-4 py-3">
+              {% if att.time_in %}
+                <span class="fw-semibold text-success">{{ att.time_in|date:"h:i A" }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3">
+              {% if att.time_out %}
+                <span class="fw-semibold text-danger">{{ att.time_out|date:"h:i A" }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3">
+              <span class="fw-semibold text-primary">{{ att.duration }}</span>
+            </td>
+            <td class="px-4 py-3">
+              {% if att.time_in and att.time_out %}
+                <span class="badge" style="background:#d1fae5;color:#065f46;border:1px solid #6ee7b7;">✔ Complete</span>
+              {% elif att.time_in %}
+                <span class="badge" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;">● On Duty</span>
+              {% else %}
+                <span class="badge" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;">✖ Absent</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              <i class="bi bi-clipboard-x" style="font-size:32px;display:block;margin-bottom:10px;"></i>
+              Walang attendance records.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TranspoFlow – {% block browser_title %}Dashboard{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; font-family: 'Inter', sans-serif; background: #f1f5f9; }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 250px;
+      height: 100vh;
+      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #334155 transparent;
+    }
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+    /* Brand */
+    .sidebar-brand {
+      padding: 1.2rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      border-bottom: 1px solid #1e3a5f;
+      flex-shrink: 0;
+    }
+    .sidebar-brand .brand-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 1.15rem;
+    }
+    .sidebar-brand .brand-name {
+      color: #f1f5f9;
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: -.5px;
+      line-height: 1.1;
+    }
+    .sidebar-brand .brand-sub {
+      color: #64748b;
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Section label */
+    .nav-section {
+      color: #334155;
+      font-size: .68rem;
+      font-weight: 700;
+      padding: 1rem 1.25rem .35rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+    }
+
+    /* Nav links */
+    .nav-link {
+      color: #94a3b8;
+      padding: .6rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      font-size: .875rem;
+      font-weight: 500;
+      border-radius: 0;
+      border-left: 3px solid transparent;
+      transition: background .15s, color .15s, border-color .15s;
+      text-decoration: none;
+    }
+    .nav-link i { font-size: 1rem; width: 18px; flex-shrink: 0; }
+    .nav-link:hover {
+      background: rgba(255,255,255,.05);
+      color: #e2e8f0;
+    }
+    .nav-link.active {
+      background: rgba(59,130,246,.15);
+      color: #60a5fa;
+      border-left-color: #3b82f6;
+      font-weight: 600;
+    }
+    .nav-link .ms-auto { margin-left: auto; }
+    .dropdown-caret {
+      margin-left: auto;
+      font-size: .7rem;
+      transition: transform .2s;
+    }
+    .nav-link[aria-expanded="true"] .dropdown-caret { transform: rotate(180deg); }
+
+    /* Sub-links */
+    .sub-link {
+      color: #64748b;
+      padding: .48rem 1.25rem .48rem 3.1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .82rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: background .15s, color .15s;
+    }
+    .sub-link i { font-size: .85rem; width: 14px; flex-shrink: 0; }
+    .sub-link:hover {
+      background: rgba(255,255,255,.04);
+      color: #cbd5e1;
+    }
+    .sub-link.active {
+      color: #60a5fa;
+      background: rgba(59,130,246,.08);
+      border-left-color: #3b82f6;
+    }
+
+    /* Sidebar bottom user card */
+    .sidebar-footer {
+      margin-top: auto;
+      border-top: 1px solid #1e293b;
+      padding: .9rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .sidebar-footer .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: .85rem; flex-shrink: 0;
+    }
+    .sidebar-footer .user-info .name { color: #e2e8f0; font-size: .8rem; font-weight: 600; }
+    .sidebar-footer .user-info .role { color: #475569; font-size: .7rem; }
+    .sidebar-footer a { margin-left: auto; color: #475569; font-size: 1rem; transition: color .15s; }
+    .sidebar-footer a:hover { color: #ef4444; }
+
+    /* ── Main ── */
+    #main { margin-left: 250px; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Topnav */
+    #topnav {
+      background: #fff;
+      padding: .75rem 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 6px rgba(0,0,0,.04);
+      flex-shrink: 0;
+    }
+    .topnav-title {
+      font-weight: 700;
+      font-size: .95rem;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .topnav-right { display: flex; align-items: center; gap: .75rem; }
+    .notif-btn {
+      position: relative;
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      display: flex; align-items: center; justify-content: center;
+      color: #475569; font-size: 1.1rem;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      text-decoration: none;
+    }
+    .notif-btn:hover { background: #eff6ff; color: #3b82f6; }
+    .notif-badge {
+      position: absolute; top: -3px; right: -3px;
+      background: #ef4444; color: #fff;
+      font-size: .6rem; font-weight: 700;
+      width: 17px; height: 17px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid #fff;
+    }
+    .user-chip {
+      display: flex; align-items: center; gap: .5rem;
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 99px; padding: .35rem .75rem .35rem .35rem;
+      font-size: .82rem; color: #374151; font-weight: 600;
+    }
+    .user-chip .chip-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: linear-gradient(135deg,#8b5cf6,#3b82f6);
+      color: #fff; display: flex; align-items: center;
+      justify-content: center; font-size: .72rem; font-weight: 700;
+    }
+
+    /* Content area */
+    #content { padding: 1.5rem; flex: 1; }
+
+    /* Generic card */
+    .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+
+    /* Alerts */
+    .alert { border-radius: 10px; font-size: .875rem; }
+  </style>
+</head>
+<body>
+
+{% with url_name=request.resolver_match.url_name %}
+
+<!-- ════════════════ SIDEBAR ════════════════ -->
+<div id="sidebar">
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <div class="brand-icon"><i class="bi bi-truck-front-fill"></i></div>
+    <div>
+      <div class="brand-name">TranspoFlow</div>
+      <div class="brand-sub">Fleet Management</div>
+    </div>
+  </div>
+
+  <nav class="flex-grow-1 mt-1">
+
+    <!-- Main -->
+    <div class="nav-section">Main</div>
+
+    <a href="{% url 'dashboard' %}" class="nav-link {% if url_name == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+
+    <!-- Vehicles -->
+    <div class="nav-section">Fleet</div>
+
+    <a href="#vehicleMenu" data-bs-toggle="collapse" class="nav-link
+      {% if url_name in 'vehicle_list,vehicle_create,vehicle_update,vehicle_delete' %}active{% endif %}"
+      aria-expanded="{% if url_name in 'vehicle_list,vehicle_create,vehicle_update,vehicle_delete' %}true{% else %}false{% endif %}">
+      <i class="bi bi-truck-front"></i> Vehicles
+      <i class="bi bi-chevron-down dropdown-caret"></i>
+    </a>
+    <div class="collapse {% if url_name in 'vehicle_list,vehicle_create,vehicle_update,vehicle_delete' %}show{% endif %}" id="vehicleMenu">
+      <a href="{% url 'vehicle_list' %}" class="sub-link {% if url_name == 'vehicle_list' %}active{% endif %}">
+        <i class="bi bi-list-ul"></i> Vehicle List
+      </a>
+      <a href="{% url 'vehicle_create' %}" class="sub-link {% if url_name == 'vehicle_create' %}active{% endif %}">
+        <i class="bi bi-plus-circle"></i> Add Vehicle
+      </a>
+    </div>
+
+    <!-- Drivers -->
+    <a href="#driverMenu" data-bs-toggle="collapse" class="nav-link
+      {% if url_name in 'driver_list,driver_create,driver_update,driver_delete' %}active{% endif %}"
+      aria-expanded="{% if url_name in 'driver_list,driver_create,driver_update,driver_delete' %}true{% else %}false{% endif %}">
+      <i class="bi bi-person-badge"></i> Drivers
+      <i class="bi bi-chevron-down dropdown-caret"></i>
+    </a>
+    <div class="collapse {% if url_name in 'driver_list,driver_create,driver_update,driver_delete' %}show{% endif %}" id="driverMenu">
+      <a href="{% url 'driver_list' %}" class="sub-link {% if url_name == 'driver_list' %}active{% endif %}">
+        <i class="bi bi-list-ul"></i> Driver List
+      </a>
+      <a href="{% url 'driver_create' %}" class="sub-link {% if url_name == 'driver_create' %}active{% endif %}">
+        <i class="bi bi-person-plus"></i> Add Driver
+        <a href="{% url 'admin_attendance_list' %}" class="nav-link {% if url_name == 'admin_attendance_list' %}active{% endif %}">
+      <i class="bi bi-clipboard-check"></i> Attendance
+    </a>
+      </a>
+    </div>
+
+    <!-- Operations -->
+    <div class="nav-section">Operations</div>
+
+    <!-- Trips -->
+    <!-- Trips -->
+<a href="#tripMenu" data-bs-toggle="collapse" class="nav-link
+  {% if url_name in 'trip_list,trip_create,trip_update,trip_delete,schedule_list,schedule_create' %}active{% endif %}"
+  aria-expanded="{% if url_name in 'trip_list,trip_create,trip_update,trip_delete,schedule_list,schedule_create' %}true{% else %}false{% endif %}">
+  <i class="bi bi-signpost-split"></i> Trips
+  <i class="bi bi-chevron-down dropdown-caret"></i>
+</a>
+<div class="collapse {% if url_name in 'trip_list,trip_create,trip_update,trip_delete,schedule_list,schedule_create' %}show{% endif %}" id="tripMenu">
+  <a href="{% url 'trip_list' %}" class="sub-link {% if url_name == 'trip_list' %}active{% endif %}">
+    <i class="bi bi-list-ul"></i> Trip List
+  </a>
+  <a href="{% url 'trip_create' %}" class="sub-link {% if url_name == 'trip_create' %}active{% endif %}">
+    <i class="bi bi-plus-circle"></i> Add Trip
+  </a>
+  <a href="{% url 'schedule_list' %}" class="sub-link {% if url_name == 'schedule_list' %}active{% endif %}">
+    <i class="bi bi-calendar-week"></i> Schedules
+  </a>
+  <a href="{% url 'schedule_create' %}" class="sub-link {% if url_name == 'schedule_create' %}active{% endif %}">
+    <i class="bi bi-plus-circle"></i> Add Schedule
+  </a>
+</div>
+    <div class="collapse {% if url_name in 'trip_list,trip_create,trip_update,trip_delete' %}show{% endif %}" id="tripMenu">
+      <a href="{% url 'trip_list' %}" class="sub-link {% if url_name == 'trip_list' %}active{% endif %}">
+        <i class="bi bi-list-ul"></i> Trip List
+      </a>
+      <a href="{% url 'trip_create' %}" class="sub-link {% if url_name == 'trip_create' %}active{% endif %}">
+        <i class="bi bi-plus-circle"></i> Add Trip
+      </a>
+    </div>
+
+    <!-- Bookings -->
+    <a href="{% url 'booking_list' %}" class="nav-link {% if url_name == 'booking_list' %}active{% endif %}">
+      <i class="bi bi-journal-check"></i> Bookings
+    </a>
+
+
+
+    <!-- Fuel -->
+    <a href="#fuelMenu" data-bs-toggle="collapse" class="nav-link
+      {% if url_name in 'fuel_list,fuel_create,fuel_update,fuel_delete' %}active{% endif %}"
+      aria-expanded="{% if url_name in 'fuel_list,fuel_create,fuel_update,fuel_delete' %}true{% else %}false{% endif %}">
+      <i class="bi bi-fuel-pump"></i> Fuel
+      <i class="bi bi-chevron-down dropdown-caret"></i>
+    </a>
+    <div class="collapse {% if url_name in 'fuel_list,fuel_create,fuel_update,fuel_delete' %}show{% endif %}" id="fuelMenu">
+      <a href="{% url 'fuel_list' %}" class="sub-link {% if url_name == 'fuel_list' %}active{% endif %}">
+        <i class="bi bi-list-ul"></i> Fuel Logs
+      </a>
+        <i class="bi bi-plus-circle"></i> Add Log
+      </a>
+    </div>
+
+    <!-- Tracking & Reports -->
+    <div class="nav-section">Analytics</div>
+
+    <a href="#trackingMenu" data-bs-toggle="collapse" class="nav-link
+  {% if url_name == 'map_view' %}active{% endif %}"
+  aria-expanded="{% if url_name == 'map_view' %}true{% else %}false{% endif %}">
+  <i class="bi bi-geo-alt"></i> Tracking
+  <i class="bi bi-chevron-down dropdown-caret"></i>
+</a>
+<div class="collapse {% if url_name == 'map_view' %}show{% endif %}" id="trackingMenu">
+  <a href="{% url 'map_view' %}" class="sub-link {% if url_name == 'map_view' %}active{% endif %}">
+    <i class="bi bi-map"></i> Live Map
+  </a>
+</div>
+
+    <a href="{% url 'admin_attendance_list' %}" class="nav-link {% if url_name == 'admin_attendance_list' %}active{% endif %}">
+  <i class="bi bi-clipboard-check"></i> Attendance
+</a>
+    <a href="{% url 'reports' %}" class="nav-link {% if url_name == 'reports' %}active{% endif %}">
+      <i class="bi bi-bar-chart-line"></i> Reports
+    </a>
+
+  </nav>
+
+  <!-- Sidebar footer -->
+  {% if user.is_authenticated %}
+  <div class="sidebar-footer">
+    <div class="avatar">{{ user.username|first|upper }}</div>
+    <div class="user-info">
+      <div class="name">{{ user.username }}</div>
+      <div class="role">{% if user.is_staff %}Administrator{% else %}Staff{% endif %}</div>
+    </div>
+    <a href="{% url 'logout' %}" title="Logout"><i class="bi bi-box-arrow-right"></i></a>
+  </div>
+  {% endif %}
+</div><!-- /sidebar -->
+
+<!-- ════════════════ MAIN ════════════════ -->
+<div id="main">
+
+  <!-- Topnav -->
+  <div id="topnav">
+    <div class="topnav-title">
+      <i class="bi bi-grid-1x2-fill text-primary opacity-75"></i>
+      {% block page_title %}Dashboard{% endblock %}
+    </div>
+
+    <div class="topnav-right">
+      {% if notifications %}
+      <a href="#" class="notif-btn" title="{{ notifications|length }} unread notification(s)">
+        <i class="bi bi-bell"></i>
+        <span class="notif-badge">{{ notifications|length }}</span>
+      </a>
+      {% else %}
+      <a href="#" class="notif-btn" title="No new notifications">
+        <i class="bi bi-bell"></i>
+      </a>
+      {% endif %}
+
+      {% if user.is_authenticated %}
+      <div class="user-chip">
+        <div class="chip-avatar">{{ user.username|first|upper }}</div>
+        {{ user.username }}
+      </div>
+      <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger rounded-pill">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </a>
+      {% else %}
+      <a href="{% url 'passenger_login' %}" class="btn btn-sm btn-primary rounded-pill">Login</a>
+      <a href="{% url 'passenger_register' %}" class="btn btn-sm btn-outline-primary rounded-pill">Register</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div id="content">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-3">
+          {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>
+          {% elif message.tags == 'danger' or message.tags == 'error' %}<i class="bi bi-x-circle-fill me-2"></i>
+          {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>
+          {% else %}<i class="bi bi-info-circle-fill me-2"></i>{% endif %}
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </div>
+
+</div><!-- /main -->
+
+{% endwith %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

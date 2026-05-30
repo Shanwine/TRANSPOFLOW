@@ -1,0 +1,48 @@
+{% extends 'accounts/auth_base.html' %}
+{% block content %}
+
+<div style="text-align:center; margin-bottom:1.5rem;">
+    <h4 style="font-weight:800; color:#333;">Welcome Back</h4>
+    <p style="color:#aaa; font-size:13px;">Sign in to your Transflow account</p>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div style="background:#fff0f0; color:#c0392b; border-radius:10px; padding:10px 14px; font-size:13px; margin-bottom:1rem;">
+        <i class="bi bi-exclamation-circle"></i> {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+    <label style="font-size:11px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:0.08em; display:block; margin-bottom:6px;">Username</label>
+    <div style="display:flex; align-items:center; background:#f4f5f9; border-radius:12px; padding:0 14px; margin-bottom:1rem;">
+        <i class="bi bi-person" style="color:#bbb; margin-right:10px;"></i>
+        <input type="text" name="username" placeholder="Enter your username"
+            style="border:none; background:transparent; outline:none; font-size:15px; color:#333; width:100%; padding:13px 0;" required />
+    </div>
+
+    <label style="font-size:11px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:0.08em; display:block; margin-bottom:6px;">Password</label>
+    <div style="display:flex; align-items:center; background:#f4f5f9; border-radius:12px; padding:0 14px; margin-bottom:1.5rem;">
+        <i class="bi bi-lock" style="color:#bbb; margin-right:10px;"></i>
+        <input type="password" name="password" placeholder="••••••••••"
+            style="border:none; background:transparent; outline:none; font-size:15px; color:#333; width:100%; padding:13px 0;" required />
+    </div>
+
+    <button type="submit"
+        style="width:100%; background:linear-gradient(90deg,#4a90d9,#00c6a7); color:white; font-weight:700; font-size:15px; padding:14px; border:none; border-radius:12px; cursor:pointer;">
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
+    </button>
+</form>
+
+<p style="text-align:center; color:#bbb; font-size:13px; margin-top:1.25rem;">
+    Don't have an account?
+    <a href="{% url 'passenger_register' %}" style="color:#4a90d9; font-weight:700; text-decoration:none;">Create one here</a>
+</p>
+<p style="text-align:center; color:#bbb; font-size:13px; margin-top:0.5rem;">
+    Are you an admin?
+    <a href="{% url 'admin_login' %}" style="color:#3b4fc8; font-weight:700; text-decoration:none;">Admin Login</a>
+</p>
+
+{% endblock %}

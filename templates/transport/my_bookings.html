@@ -1,0 +1,91 @@
+{% extends 'customer_base.html' %}
+
+{% block title %}My Bookings{% endblock %}
+{% block topbar_icon %}journal-bookmark-fill{% endblock %}
+{% block page_title %}My Bookings{% endblock %}
+{% block nav_bookings %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-title">My Bookings</div>
+    <div class="page-subtitle">Track all your trip bookings</div>
+  </div>
+  <a href="{% url 'available_trips' %}" class="btn-primary-tf">
+    <i class="bi bi-plus-lg"></i> New Booking
+  </a>
+</div>
+
+<!-- Status Filter Tabs -->
+<div style="display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;">
+  <a href="{% url 'my_bookings' %}" style="padding:7px 18px;text-decoration:none;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid {% if not status_filter %}#3b82f6{% else %}#e2e8f0{% endif %};background:{% if not status_filter %}#eff6ff{% else %}transparent{% endif %};color:{% if not status_filter %}#1d4ed8{% else %}#64748b{% endif %};">All</a>
+  <a href="?status=pending" style="padding:7px 18px;text-decoration:none;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid {% if status_filter == 'pending' %}#f59e0b{% else %}#e2e8f0{% endif %};background:{% if status_filter == 'pending' %}#fffbeb{% else %}transparent{% endif %};color:{% if status_filter == 'pending' %}#b45309{% else %}#64748b{% endif %};"><i class="bi bi-hourglass-split"></i> Pending</a>
+  <a href="?status=confirmed" style="padding:7px 18px;text-decoration:none;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid {% if status_filter == 'confirmed' %}#10b981{% else %}#e2e8f0{% endif %};background:{% if status_filter == 'confirmed' %}#ecfdf5{% else %}transparent{% endif %};color:{% if status_filter == 'confirmed' %}#047857{% else %}#64748b{% endif %};"><i class="bi bi-check-circle"></i> Confirmed</a>
+  <a href="?status=completed" style="padding:7px 18px;text-decoration:none;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid {% if status_filter == 'completed' %}#6366f1{% else %}#e2e8f0{% endif %};background:{% if status_filter == 'completed' %}#eef2ff{% else %}transparent{% endif %};color:{% if status_filter == 'completed' %}#4338ca{% else %}#64748b{% endif %};"><i class="bi bi-flag-fill"></i> Completed</a>
+  <a href="?status=cancelled" style="padding:7px 18px;text-decoration:none;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid {% if status_filter == 'cancelled' %}#ef4444{% else %}#e2e8f0{% endif %};background:{% if status_filter == 'cancelled' %}#fef2f2{% else %}transparent{% endif %};color:{% if status_filter == 'cancelled' %}#b91c1c{% else %}#64748b{% endif %};"><i class="bi bi-x-circle"></i> Cancelled</a>
+</div>
+
+{% if bookings %}
+<div style="display:flex;flex-direction:column;gap:12px;">
+  {% for booking in bookings %}
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+
+    <!-- Left: Route -->
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="width:44px;height:44px;border-radius:12px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i class="bi bi-truck" style="color:#3b82f6;font-size:18px;"></i>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:15px;color:#0f172a;">{{ booking.trip.origin }} → {{ booking.trip.destination }}</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:2px;">
+          <i class="bi bi-calendar3"></i> {{ booking.booked_at|date:"M d, Y" }} &nbsp;·&nbsp;
+          <i class="bi bi-person-fill"></i> {{ booking.trip.driver.name|default:"No driver" }} &nbsp;·&nbsp;
+          <i class="bi bi-car-front-fill"></i> {{ booking.trip.vehicle.name|default:"No vehicle" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Status + Actions -->
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="padding:5px 14px;border-radius:99px;font-size:12px;font-weight:600;
+        {% if booking.status == 'pending' %}background:#fffbeb;color:#b45309;border:1px solid #f59e0b;
+        {% elif booking.status == 'confirmed' %}background:#ecfdf5;color:#047857;border:1px solid #10b981;
+        {% elif booking.status == 'completed' %}background:#eef2ff;color:#4338ca;border:1px solid #6366f1;
+        {% elif booking.status == 'cancelled' %}background:#fef2f2;color:#b91c1c;border:1px solid #ef4444;
+        {% endif %}">
+        {% if booking.status == 'pending' %}<i class="bi bi-hourglass-split"></i>
+        {% elif booking.status == 'confirmed' %}<i class="bi bi-check-circle-fill"></i>
+        {% elif booking.status == 'completed' %}<i class="bi bi-flag-fill"></i>
+        {% elif booking.status == 'cancelled' %}<i class="bi bi-x-circle-fill"></i>
+        {% endif %}
+        {{ booking.get_status_display }}
+      </span>
+
+      <a href="{% url 'booking_detail' booking.pk %}" style="width:34px;height:34px;border-radius:8px;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;text-decoration:none;" title="View">
+        <i class="bi bi-eye-fill"></i>
+      </a>
+
+      {% if booking.status == 'pending' or booking.status == 'confirmed' %}
+      <form method="post" action="{% url 'cancel_booking' booking.pk %}" id="cancel-form-{{ booking.pk }}">
+        {% csrf_token %}
+        <input type="hidden" name="reason" value="Cancelled by customer">
+        <button type="button" style="width:34px;height:34px;border-radius:8px;border:1px solid #fecaca;background:#fef2f2;display:flex;align-items:center;justify-content:center;color:#ef4444;cursor:pointer;" class="cancel-booking-btn" data-form-id="cancel-form-{{ booking.pk }}" title="Cancel">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </form>
+      {% endif %}
+    </div>
+
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div style="text-align:center;padding:60px 20px;background:#fff;border-radius:16px;border:1px solid #e2e8f0;">
+  <i class="bi bi-journal-x" style="font-size:48px;color:#cbd5e1;"></i>
+  <p style="margin-top:16px;color:#64748b;font-size:15px;">No bookings found{% if status_filter %} with status "<strong>{{ status_filter }}</strong>"{% endif %}.</p>
+  <a href="{% url 'available_trips' %}" class="btn-primary-tf">Browse Available Trips</a>
+</div>
+{% endif %}
+
+{% endblock %}
